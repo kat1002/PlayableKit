@@ -1,26 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BlackGemsGlobal.SeatAway.GamePlayEvent
 {
     public static class GameEventManager
     {
-        
         /// <summary>
         /// Event Id
         /// </summary>
         public enum EventId
         {
-            GameLose, 
-            GameWin, 
+            GameLose,
+            GameWin,
             LandscapeScreen,
             VerticalScreen,
             OnActiveUI,
             OnDeactiveUI,
             OnActiveCTA,
             OnDeactiveCTA,
+            TimeEnd,
         }
-        
+
         /// <summary>
         /// Call Back
         /// </summary>
@@ -30,7 +30,7 @@ namespace BlackGemsGlobal.SeatAway.GamePlayEvent
         /// Event all call back in games
         /// </summary>
         private static Dictionary<EventId, List<GameEventCallBack>> _eventCallBacks = new Dictionary<EventId, List<GameEventCallBack>>();
-        
+
         /// <summary>
         /// Register events
         /// </summary>
@@ -38,13 +38,15 @@ namespace BlackGemsGlobal.SeatAway.GamePlayEvent
         /// <param name="callBack"></param>
         public static void RegisterEvent(EventId eventId, GameEventCallBack callBack)
         {
-            _eventCallBacks.TryAdd(eventId, new List<GameEventCallBack>());
-            List<GameEventCallBack> _allCallBacks = _eventCallBacks[eventId];
+            List<GameEventCallBack> _allCallBacks;
+            if (!_eventCallBacks.TryGetValue(eventId, out _allCallBacks))
+            {
+                _allCallBacks = new List<GameEventCallBack>();
+                _eventCallBacks[eventId] = _allCallBacks;
+            }
             _allCallBacks.Add(callBack);
-            
-            _eventCallBacks[eventId] = _allCallBacks;
         }
-        
+
         /// <summary>
         /// Unregister event
         /// </summary>
@@ -52,34 +54,30 @@ namespace BlackGemsGlobal.SeatAway.GamePlayEvent
         /// <param name="callBack"></param>
         public static void UnRegisterEvent(EventId eventId, GameEventCallBack callBack)
         {
-            _eventCallBacks.TryAdd(eventId, new List<GameEventCallBack>());
-            List<GameEventCallBack> _allCallBacks = _eventCallBacks[eventId];
-            _allCallBacks.Remove(callBack);
-            
-            _eventCallBacks[eventId] = _allCallBacks;
-        }
-
-        
-        /// <summary>
-        /// Raised Event
-        /// </summary>
-        /// <param name="eventId"></param>
-        // File: GameEventManager.cs
-        public static void RaisedEvent(EventId eventId)
-        {
-            if (_eventCallBacks.TryGetValue(eventId, out var allCallback))
+            List<GameEventCallBack> _allCallBacks;
+            if (_eventCallBacks.TryGetValue(eventId, out _allCallBacks))
             {
-                // ❌ BỎ: var snapshot = allCallback.ToArray();
-        
-                // ✅ DÙNG: Loop ngược từ cuối lên đầu. 
-                // Tại sao? Để nếu trong lúc invoke có ai đó Unregister thì cũng không bị lỗi index.
-                // Quan trọng nhất: KHÔNG TẠO RÁC (Zero Garbage).
-                for (int i = allCallback.Count - 1; i >= 0; i--)
-                {
-                    allCallback[i]?.Invoke();
-                }
+                _allCallBacks.Remove(callBack);
             }
         }
 
+        /// <summary>
+        /// Raised Event (reverse iteration for zero-GC and safe unregistration during invoke).
+        /// </summary>
+        /// <param name="eventId"></param>
+        public static void RaisedEvent(EventId eventId)
+        {
+            List<GameEventCallBack> allCallback;
+            if (_eventCallBacks.TryGetValue(eventId, out allCallback))
+            {
+                for (int i = allCallback.Count - 1; i >= 0; i--)
+                {
+                    if (allCallback[i] != null)
+                    {
+                        allCallback[i].Invoke();
+                    }
+                }
+            }
+        }
     }
 }
