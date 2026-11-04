@@ -5,9 +5,11 @@ namespace LunaManagerTests.EditorTests
     public sealed class LunaManagerSessionTests
     {
         private static LunaManager.Session Make(bool useEnd = false, float endSeconds = 30f,
-            bool useNoInteraction = false, float noInteractionSeconds = 10f)
+            bool useNoInteraction = false, float noInteractionSeconds = 10f,
+            bool useTapCount = false, int tapsToStore = 3, bool switchAfterStore = true, int tapsAfterStore = 1)
         {
-            return new LunaManager.Session(useEnd, endSeconds, useNoInteraction, noInteractionSeconds);
+            return new LunaManager.Session(useEnd, endSeconds, useNoInteraction, noInteractionSeconds,
+                useTapCount, tapsToStore, switchAfterStore, tapsAfterStore);
         }
 
         [Test]
@@ -175,6 +177,18 @@ namespace LunaManagerTests.EditorTests
             Assert.That(LunaManager.ClampTickSeconds(0.1f), Is.EqualTo(0.1f));
             Assert.That(LunaManager.ClampTickSeconds(5f), Is.EqualTo(0.25f));
             Assert.That(LunaManager.ClampTickSeconds(-1f), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void RegisterTap_TriggersAtThresholdAndSwitchesRuleAfterFirstComplete()
+        {
+            LunaManager.Session session = Make(false, 30f, false, 10f, true, 3, true, 1);
+            Assert.That(session.RegisterTap(), Is.False);
+            Assert.That(session.RegisterTap(), Is.False);
+            Assert.That(session.RegisterTap(), Is.True);
+            // After reaching 3 taps, rule switches to 1 tap
+            Assert.That(session.TapsToStore, Is.EqualTo(1));
+            Assert.That(session.RegisterTap(), Is.True);
         }
     }
 }

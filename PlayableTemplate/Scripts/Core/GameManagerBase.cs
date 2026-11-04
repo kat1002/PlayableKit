@@ -41,8 +41,10 @@ namespace PlayableTemplate.Core
             _session = new GameSessionState(sessionDuration);
             Application.targetFrameRate = 60;
 
-            if (ui == null) ui = FindObjectOfType<UIControllerBase>();
-            if (cameraShake == null) cameraShake = FindObjectOfType<CameraShake>();
+            if (LunaManager.Instance != null)
+            {
+                LunaManager.Instance.StoreReturned += ReshowEndCard;
+            }
 
             OnAwake();
         }
@@ -65,7 +67,8 @@ namespace PlayableTemplate.Core
         {
             if (_session == null) return;
 
-            if (_session.TickIntroInactivity(Time.unscaledDeltaTime, introInactivityStoreDelay))
+            float unscaledDt = LunaManager.ClampTickSeconds(Time.unscaledDeltaTime);
+            if (_session.TickIntroInactivity(unscaledDt, introInactivityStoreDelay))
             {
                 OpenStoreForIntroInactivity();
                 return;
@@ -92,7 +95,10 @@ namespace PlayableTemplate.Core
         /// <summary>Re-activates the end card if the player returns from the store mid-CTA.</summary>
         public virtual void ReshowEndCard()
         {
-            if (ui != null) ui.ShowEndCard();
+            if (_session != null && _session.IsEnded && ui != null)
+            {
+                ui.ShowEndCard();
+            }
         }
 
         /// <summary>External entry point for safety timeout or forced completion.</summary>
@@ -113,7 +119,6 @@ namespace PlayableTemplate.Core
             if (reason != EndReason.Timeout)
             {
                 OnBeforeCrashSequence(reason);
-                if (cameraShake == null) cameraShake = FindObjectOfType<CameraShake>();
                 if (cameraShake != null) cameraShake.Shake(crashShakeAmplitude, crashShakeDuration);
                 StartCoroutine(EndSequence(reason));
             }
@@ -128,7 +133,12 @@ namespace PlayableTemplate.Core
         private IEnumerator EndSequence(EndReason reason)
         {
             Time.timeScale = 0.35f;
-            yield return new WaitForSecondsRealtime(0.25f);
+            float elapsed = 0f;
+            while (elapsed < 0.25f)
+            {
+                elapsed += LunaManager.ClampTickSeconds(Time.unscaledDeltaTime);
+                yield return null;
+            }
             Time.timeScale = 1f;
 
             yield return new WaitForSeconds(endCardDelay);
@@ -141,6 +151,10 @@ namespace PlayableTemplate.Core
         protected virtual void OnDestroy()
         {
             Time.timeScale = 1f;
+            if (LunaManager.Instance != null)
+            {
+                LunaManager.Instance.StoreReturned -= ReshowEndCard;
+            }
             if (Instance == this) Instance = null;
         }
 

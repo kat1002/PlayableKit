@@ -1,5 +1,6 @@
+using BlackGemsGlobal.SeatAway.GamePlayEvent;
 using UnityEngine;
-using static GameEventManager;
+using static BlackGemsGlobal.SeatAway.GamePlayEvent.GameEventManager;
 
 /// <summary>
 /// Fits this RectTransform to Screen.safeArea using normalised anchors.
@@ -8,36 +9,36 @@ using static GameEventManager;
 [RequireComponent(typeof(RectTransform))]
 public class PASafeArea : MonoBehaviour
 {
-    RectTransform rect;
-    Rect lastSafeArea;
-    int lastWidth;
-    int lastHeight;
+    private RectTransform rect;
+    private Rect lastSafeArea;
+    private int lastWidth;
+    private int lastHeight;
 
-    void Awake()
+    private void Awake()
     {
         rect = (RectTransform)transform;
         RegisterEvent(EventId.LandscapeScreen, Apply);
         RegisterEvent(EventId.VerticalScreen, Apply);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         UnRegisterEvent(EventId.LandscapeScreen, Apply);
         UnRegisterEvent(EventId.VerticalScreen, Apply);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         Apply();
     }
 
-    void Update()
+    private void Update()
     {
         if (Screen.safeArea != lastSafeArea || Screen.width != lastWidth || Screen.height != lastHeight)
             Apply();
     }
 
-    void Apply()
+    private void Apply()
     {
         if (rect == null) return;
         if (Screen.width <= 0 || Screen.height <= 0) return;

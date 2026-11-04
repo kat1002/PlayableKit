@@ -12,7 +12,7 @@ using UnityEngine.UI;
 /// warning in Luna) from the ACTIVE scene, baking what they drove into plain RectTransform values:
 ///  - ContentSizeFitter / LayoutGroup (H/V/Grid): destroyed, rects of the group and its direct children baked
 ///  - AspectRatioFitter: replaced by PAAspectFitter
-///  - ScrollRect: replaced by PADragScroll (PAStorePanel.shopScroll is re-pointed)
+///  - ScrollRect: replaced by PADragScroll (and any unassigned PADragScroll field on ancestor/sibling behaviours is auto-wired)
 /// Works on inactive objects too (inactive ancestors are temporarily activated and restored afterwards).
 /// Undo-able (one group). Marks the scene dirty but never saves. Safe to run twice.
 /// </summary>
@@ -123,7 +123,7 @@ public static class PALunaUiSanitizer
                 ConvertScrollRects(cx, scene, scrolls);
             }
 
-            FixStorePanels(cx, scene);
+            RepointDragScrollFields(cx, scene);
             Verify(cx, scene);
         }
         catch (Exception e)
@@ -142,7 +142,7 @@ public static class PALunaUiSanitizer
         cx.Line("layout groups removed=" + cx.layoutsRemoved + ", size fitters removed=" + cx.fittersRemoved
                 + ", rects baked=" + cx.rectsBaked + ", aspect fitters converted=" + cx.aspectConverted
                 + ", scroll rects converted=" + cx.scrollsConverted + ", scrollbars removed=" + cx.scrollbarsRemoved
-                + ", raycast graphics added=" + cx.graphicsAdded + ", store panels re-pointed=" + cx.panelsFixed
+                + ", raycast graphics added=" + cx.graphicsAdded + ", dragScroll fields re-pointed=" + cx.panelsFixed
                 + ", warnings=" + cx.warnings + ", errors=" + cx.errors);
         cx.Line(cx.changes > 0 ? "Scene marked dirty - review it, then save (Ctrl+S)." : "No changes made.");
 
@@ -169,7 +169,6 @@ public static class PALunaUiSanitizer
             list.Add(c);
         }
 
-        // Deterministic order (parents before children when paths nest)
         list.Sort((a, b) => string.CompareOrdinal(PathOf(a.transform), PathOf(b.transform)));
         return list;
     }
@@ -243,7 +242,6 @@ public static class PALunaUiSanitizer
         Dictionary<RectTransform, RectData> rects = new Dictionary<RectTransform, RectData>();
         List<RectTransform> order = new List<RectTransform>();
 
-        // Phase 1: record (layouts are freshly rebuilt)
         for (int i = 0; i < groups.Count; i++)
         {
             LayoutGroup g = groups[i];
@@ -318,7 +316,6 @@ public static class PALunaUiSanitizer
             if (rt != null) Record(rects, order, rt);
         }
 
-        // Phase 2: destroy size fitters first, then layout groups
         for (int i = 0; i < csfs.Count; i++)
         {
             ContentSizeFitter f = csfs[i];
@@ -351,7 +348,6 @@ public static class PALunaUiSanitizer
             cx.Line("removed LayoutGroup: " + p);
         }
 
-        // Phase 3: re-apply (destroying the drivers may have reverted driven values)
         for (int i = 0; i < order.Count; i++)
         {
             RectTransform rt = order[i];
@@ -379,7 +375,6 @@ public static class PALunaUiSanitizer
 
     static void ConvertAspectFitters(Ctx cx, List<AspectRatioFitter> arfs)
     {
-        // Parents first: a child fitter reads its parent's final rect
         List<AspectRatioFitter> list = new List<AspectRatioFitter>(arfs);
         list.RemoveAll(a => a == null);
         list.Sort((a, b) => Depth(a.transform).CompareTo(Depth(b.transform)));
@@ -488,7 +483,6 @@ public static class PALunaUiSanitizer
         Scrollbar hBar = scroll.horizontalScrollbar;
         Scrollbar vBar = scroll.verticalScrollbar;
 
-        // Size source: "shelfs" child, else the first child
         RectTransform sizeSource = null;
         Transform named = content.Find("shelfs");
         if (named != null) sizeSource = named as RectTransform;
@@ -506,7 +500,6 @@ public static class PALunaUiSanitizer
         }
         if (sizeSource == null) cx.Warn("no size source (shelfs / first child) under content: " + path);
 
-        // Raycast target so empty areas still start a drag (a ScrollRect object normally has an Image)
         Graphic graphic = go.GetComponent<Graphic>();
         if (graphic == null)
         {
@@ -522,7 +515,6 @@ public static class PALunaUiSanitizer
             cx.Warn("Graphic on scroll object has Raycast Target off, drags on empty areas will not scroll: " + path);
         }
 
-        // --- geometry: size source left-anchored with pivot x 0, content (0,0)-(0,1) pivot (0,0.5) at x 0
         float contentWidth = content.rect.width;
         if (sizeSource != null)
         {
@@ -589,7 +581,6 @@ public static class PALunaUiSanitizer
         cx.Line("content set to anchors (0,0)-(0,1), pivot (0,0.5), x 0, width " + contentWidth + ": "
                 + PathOf(content));
 
-        // Other children whose width followed the old stretched content
         for (int i = 0; i < content.childCount; i++)
         {
             RectTransform c = content.GetChild(i) as RectTransform;
@@ -599,7 +590,6 @@ public static class PALunaUiSanitizer
                         + PathOf(c));
         }
 
-        // --- PADragScroll
         PADragScroll drag = go.GetComponent<PADragScroll>();
         if (drag == null) drag = Undo.AddComponent<PADragScroll>(go);
         Undo.RecordObject(drag, "Convert ScrollRect");
@@ -610,7 +600,6 @@ public static class PALunaUiSanitizer
         drag.m_Inertia = inertia;
         EditorUtility.SetDirty(drag);
 
-        // --- destroy the ScrollRect (Mask / RectMask2D on the viewport stay untouched)
         Undo.DestroyObjectImmediate(scroll);
         cx.scrollsConverted++;
         cx.changes++;
@@ -635,7 +624,6 @@ public static class PALunaUiSanitizer
         cx.Line("removed orphaned Scrollbar component: " + p);
     }
 
-    // Serialized references to a ScrollRect cannot be re-pointed to a PADragScroll generically, so report them
     static void LogScrollReferences(Ctx cx, Scene scene, HashSet<ScrollRect> doomed)
     {
         List<MonoBehaviour> behaviours = FindInScene<MonoBehaviour>(scene);
@@ -668,40 +656,54 @@ public static class PALunaUiSanitizer
         }
     }
 
-    // PAStorePanel.shopScroll is now a PADragScroll: the old ScrollRect reference deserializes as null
-    static void FixStorePanels(Ctx cx, Scene scene)
+    // Generic re-pointer: auto-wires any unassigned PADragScroll field on ancestor/sibling MonoBehaviours.
+    static void RepointDragScrollFields(Ctx cx, Scene scene)
     {
-        List<PAStorePanel> panels = FindInScene<PAStorePanel>(scene);
-        for (int i = 0; i < panels.Count; i++)
+        List<MonoBehaviour> behaviours = FindInScene<MonoBehaviour>(scene);
+        for (int i = 0; i < behaviours.Count; i++)
         {
-            PAStorePanel panel = panels[i];
-            if (panel == null) continue;
-            if (panel.shopScroll != null) continue;
-
-            PADragScroll pick = null;
-            for (Transform t = panel.transform; t != null && pick == null; t = t.parent)
+            MonoBehaviour mb = behaviours[i];
+            if (mb == null || mb is PADragScroll) continue;
+            try
             {
-                PADragScroll[] found = t.GetComponentsInChildren<PADragScroll>(true);
-                if (found.Length == 0) continue;
-                pick = found[0];
-                if (found.Length > 1)
-                    cx.Warn("several PADragScroll under " + PathOf(t) + ", picked " + PathOf(pick.transform)
-                            + " for " + PathOf(panel.transform));
-            }
+                SerializedObject so = new SerializedObject(mb);
+                SerializedProperty it = so.GetIterator();
+                bool enter = true;
+                bool modified = false;
+                while (it.NextVisible(enter))
+                {
+                    enter = true;
+                    if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
+                    if (it.objectReferenceValue != null) continue;
+                    if (!it.type.Contains("PADragScroll")) continue;
 
-            if (pick == null)
+                    PADragScroll pick = null;
+                    for (Transform t = mb.transform; t != null && pick == null; t = t.parent)
+                    {
+                        PADragScroll[] found = t.GetComponentsInChildren<PADragScroll>(true);
+                        if (found.Length > 0) pick = found[0];
+                    }
+
+                    if (pick != null)
+                    {
+                        Undo.RecordObject(mb, "Re-point PADragScroll");
+                        it.objectReferenceValue = pick;
+                        modified = true;
+                        cx.panelsFixed++;
+                        cx.changes++;
+                        cx.Line(mb.GetType().Name + "." + it.propertyPath + " -> " + PathOf(pick.transform) + " on " + PathOf(mb.transform));
+                    }
+                }
+                if (modified)
+                {
+                    so.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(mb);
+                }
+            }
+            catch (Exception e)
             {
-                cx.Error("PAStorePanel.shopScroll is empty and no PADragScroll was found near: "
-                         + PathOf(panel.transform));
-                continue;
+                cx.Warn("could not inspect " + mb.GetType().Name + " on " + PathOf(mb.transform) + ": " + e.Message);
             }
-
-            Undo.RecordObject(panel, "Re-point shopScroll");
-            panel.shopScroll = pick;
-            EditorUtility.SetDirty(panel);
-            cx.panelsFixed++;
-            cx.changes++;
-            cx.Line("PAStorePanel.shopScroll -> " + PathOf(pick.transform) + " on " + PathOf(panel.transform));
         }
     }
 

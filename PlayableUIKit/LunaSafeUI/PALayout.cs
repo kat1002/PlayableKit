@@ -1,6 +1,7 @@
 using System;
+using BlackGemsGlobal.SeatAway.GamePlayEvent;
 using UnityEngine;
-using static GameEventManager;
+using static BlackGemsGlobal.SeatAway.GamePlayEvent.GameEventManager;
 
 [Serializable]
 public class PARectPreset
@@ -39,7 +40,7 @@ public class PARectPreset
 
 /// <summary>
 /// Applies a full RectTransform preset per orientation. Follows the Landscape/Vertical events
-/// raised by PAResolution. Use the context menus to capture the current rect or preview a preset.
+/// raised by ScreenOrientationChecker / GameEventManager. Use the context menus to capture the current rect or preview a preset.
 /// </summary>
 [RequireComponent(typeof(RectTransform))]
 public class PALayout : MonoBehaviour
@@ -50,9 +51,9 @@ public class PALayout : MonoBehaviour
     // Opt-in: also SetActive(preset.active). An inactive object stops receiving OnEnable but keeps its event registration.
     public bool m_ApplyActive;
 
-    RectTransform rect;
+    private RectTransform rect;
 
-    RectTransform Rect
+    private RectTransform Rect
     {
         get
         {
@@ -61,33 +62,32 @@ public class PALayout : MonoBehaviour
         }
     }
 
-    void Reset()
+    private void Reset()
     {
         m_Landscape.Capture((RectTransform)transform);
         m_Vertical.Capture((RectTransform)transform);
     }
 
-    void Awake()
+    private void Awake()
     {
         RegisterEvent(EventId.LandscapeScreen, OnLandscape);
         RegisterEvent(EventId.VerticalScreen, OnVertical);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         UnRegisterEvent(EventId.LandscapeScreen, OnLandscape);
         UnRegisterEvent(EventId.VerticalScreen, OnVertical);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         // Events only fire on change, so apply the current orientation when enabled.
-        TScreen s = PAResolution.Current != TScreen.None ? PAResolution.Current : PAResolution.GetScreenType();
-        Apply(s);
+        Apply(ScreenOrientationChecker.GetCurrentScreen());
     }
 
-    void OnLandscape() { Apply(TScreen.LandscapeScreen); }
-    void OnVertical() { Apply(TScreen.VerticalScreen); }
+    private void OnLandscape() { Apply(TScreen.LandscapeScreen); }
+    private void OnVertical() { Apply(TScreen.VerticalScreen); }
 
     public void Apply(TScreen screen)
     {
@@ -96,14 +96,14 @@ public class PALayout : MonoBehaviour
     }
 
     [ContextMenu("Capture current as Landscape")]
-    void CaptureLandscape() { m_Landscape.Capture(Rect); }
+    private void CaptureLandscape() { m_Landscape.Capture(Rect); }
 
     [ContextMenu("Capture current as Vertical")]
-    void CaptureVertical() { m_Vertical.Capture(Rect); }
+    private void CaptureVertical() { m_Vertical.Capture(Rect); }
 
     [ContextMenu("Preview Landscape")]
-    void PreviewLandscape() { m_Landscape.Apply(Rect, m_ApplyActive); }
+    private void PreviewLandscape() { m_Landscape.Apply(Rect, m_ApplyActive); }
 
     [ContextMenu("Preview Vertical")]
-    void PreviewVertical() { m_Vertical.Apply(Rect, m_ApplyActive); }
+    private void PreviewVertical() { m_Vertical.Apply(Rect, m_ApplyActive); }
 }

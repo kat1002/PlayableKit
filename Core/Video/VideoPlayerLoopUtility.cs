@@ -14,13 +14,9 @@ public static class VideoPlayerLoopUtility
 
         if (!player.isPrepared && player.clip == null && string.IsNullOrEmpty(player.url)) return;
 
-        try
+        if (player.canSetTime)
         {
             player.time = 0d;
-        }
-        catch
-        {
-            // Some runtimes can reject direct seeks until the player fully settles.
         }
 
         player.Play();

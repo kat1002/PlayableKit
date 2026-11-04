@@ -1,3 +1,4 @@
+using PlayableKit;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,11 +10,6 @@ namespace PlayableTemplate.Core
     /// Drives the screen-space overlay: tap zones, the tutorial hand, the survival progress
     /// bar, and the CTA end card. Generic orchestrator — usable as-is (wire portraitCore /
     /// landscapeCore directly in the Inspector), or subclass to add game-specific HUD.
-    ///
-    /// Unity can't polymorphically (de)serialize a [Serializable] class through C# inheritance,
-    /// so a subclass that needs EXTRA fields (see BikePlayable's UIController.UIRefs) keeps its
-    /// own richer ref class and copies into portraitCore/landscapeCore via the BuildCoreRefs()
-    /// hook instead of replacing them.
     /// </summary>
     public class UIControllerBase : MonoBehaviour
     {
@@ -51,7 +47,6 @@ namespace PlayableTemplate.Core
         protected virtual void Awake()
         {
             BuildCoreRefs();
-            if (loadingScreen == null) loadingScreen = FindObjectOfType<LoadingScreenController>();
             ApplyOrientation(Orientation.IsLandscape);
         }
 
@@ -119,7 +114,7 @@ namespace PlayableTemplate.Core
 
         public virtual void Cta()
         {
-            AudioManagerBase.Instance?.PlayTap();
+            if (AudioManagerBase.Instance != null) AudioManagerBase.Instance.PlayTap();
             if (LunaManager.instance != null) LunaManager.instance.GoToStore();
         }
 
@@ -131,15 +126,9 @@ namespace PlayableTemplate.Core
                 bool isLandscape = Orientation.IsLandscape;
                 if (isLandscape != activeIsLandscape)
                 {
-                    // The WebGL canvas often isn't sized to its final ad-slot dimensions yet at
-                    // Awake() -- re-check once now that a frame has passed and self-correct if
-                    // the earlier guess was wrong, so everything gated by `active` isn't stranded
-                    // inside a hidden layout root for the rest of the session.
                     ApplyOrientation(isLandscape);
                     if (_introVisible) ShowIntro();
                 }
-                // The layout hazard above is exactly what the loading screen exists to mask —
-                // remove it only once that hazard has actually been resolved for this frame.
                 if (loadingScreen != null) loadingScreen.Hide();
             }
 

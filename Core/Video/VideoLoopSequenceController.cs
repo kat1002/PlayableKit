@@ -112,12 +112,12 @@ public sealed class VideoLoopSequenceController : MonoBehaviour
     {
         if (videoPlayer == null)
         {
-            videoPlayer = FindObjectOfType<VideoPlayer>();
+            videoPlayer = GetComponent<VideoPlayer>();
         }
 
         if (screenOrientationChecker == null)
         {
-            screenOrientationChecker = FindObjectOfType<ScreenOrientationChecker>();
+            screenOrientationChecker = GetComponent<ScreenOrientationChecker>();
         }
     }
 

@@ -1,20 +1,17 @@
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using System.Collections.Generic;
 using System.IO;
-using Spine.Unity;
+using UnityEditor;
+using UnityEngine;
 
-public class LunaComplianceWindow : EditorWindow
+public class MyLunaComplianceWindow : EditorWindow
 {
     Vector2 scroll;
-    List<LunaIssue> issues = new List<LunaIssue>();
+    readonly List<LunaIssue> issues = new List<LunaIssue>();
 
     [MenuItem("Tools/MyLunaHelper/Compliance Tool")]
     static void Open()
     {
-        GetWindow<LunaComplianceWindow>("Luna Compliance");
+        GetWindow<MyLunaComplianceWindow>("Luna Compliance");
     }
 
     void OnGUI()
@@ -24,20 +21,12 @@ public class LunaComplianceWindow : EditorWindow
         if (GUILayout.Button("Scan Active Scene", GUILayout.Height(30)))
             Scan();
 
-        /*
-        if (issues.Count > 0)
-        {
-            if (GUILayout.Button("Auto Fix (Safe Only)", GUILayout.Height(25)))
-                AutoFix();
-        }
-        */
-
         GUILayout.Space(10);
         scroll = GUILayout.BeginScrollView(scroll);
         foreach (var i in issues)
         {
-            GUI.color = i.severity == LunaSeverity.Error ? Color.red : Color.yellow;
-            GUILayout.Label($"{i.severity}: {i.message}");
+            GUI.color = i.severity == LunaSeverity.Error ? Color.red : (i.severity == LunaSeverity.Warning ? Color.yellow : Color.green);
+            GUILayout.Label(i.severity + ": " + i.message);
             GUI.color = Color.white;
 
             if (i.ping != null && GUILayout.Button("Ping"))
@@ -56,25 +45,33 @@ public class LunaComplianceWindow : EditorWindow
         ScanAndFixURPInProject(false);
 
         if (issues.Count == 0)
-            issues.Add(new LunaIssue(LunaSeverity.Info, "Scene is Luna-safe 🎉", null));
+            issues.Add(new LunaIssue(LunaSeverity.Info, "Scene is Luna-safe", null));
     }
 
-    // ================= SPINE =================
+    // ================= SPINE (Decoupled from Spine DLL via SerializedObject) =================
     void ScanSpine()
     {
-        var anims = Object.FindObjectsOfType<SkeletonAnimation>(true);
-        foreach (var a in anims)
+        var behaviours = Object.FindObjectsOfType<MonoBehaviour>(true);
+        foreach (var mb in behaviours)
         {
-            var data = a.SkeletonDataAsset;
+            if (mb == null) continue;
+            string typeName = mb.GetType().Name;
+            if (typeName != "SkeletonAnimation" && typeName != "SkeletonGraphic") continue;
+
+            Object data = LunaSpineSceneSkelScanner.GetSkeletonDataAsset(mb);
             if (data == null) continue;
 
-            string path = AssetDatabase.GetAssetPath(data);
-            if (path.EndsWith(".skel.bytes"))
+            SerializedObject so = new SerializedObject(data);
+            SerializedProperty jsonProp = so.FindProperty("skeletonJSON");
+            if (jsonProp == null || jsonProp.objectReferenceValue == null) continue;
+
+            string path = AssetDatabase.GetAssetPath(jsonProp.objectReferenceValue);
+            if (!string.IsNullOrEmpty(path) && (path.EndsWith(".skel") || path.EndsWith(".skel.bytes")))
             {
                 issues.Add(new LunaIssue(
                     LunaSeverity.Error,
-                    $"Spine Binary (.skel.bytes): {path}",
-                    a.gameObject));
+                    "Spine Binary (.skel.bytes): " + path,
+                    mb.gameObject));
             }
         }
     }
@@ -98,7 +95,7 @@ public class LunaComplianceWindow : EditorWindow
                 {
                     issues.Add(new LunaIssue(
                         LunaSeverity.Error,
-                        $"Unsupported Shader: {s}",
+                        "Unsupported Shader: " + s,
                         r.gameObject));
                 }
             }
@@ -120,7 +117,7 @@ public class LunaComplianceWindow : EditorWindow
             {
                 issues.Add(new LunaIssue(
                     LunaSeverity.Error,
-                    $"Blocked DOTween asset found: {p}",
+                    "Blocked DOTween asset found: " + p,
                     null));
             }
         }
@@ -129,96 +126,24 @@ public class LunaComplianceWindow : EditorWindow
     // ================= API =================
     void ScanDangerousAPI()
     {
+        if (!Directory.Exists("Assets")) return;
         string[] csFiles = Directory.GetFiles("Assets", "*.cs", SearchOption.AllDirectories);
         foreach (var f in csFiles)
         {
+            if (f.Replace('\\', '/').Contains("/Editor/")) continue;
             string c = File.ReadAllText(f);
             if (
-                c.Contains("GetComponent(") && c.Contains("\"") ||
+                (c.Contains("GetComponent(") && c.Contains("\"")) ||
                 c.Contains("OverlapCollider") ||
                 c.Contains("System.Reflection")
             )
             {
                 issues.Add(new LunaIssue(
                     LunaSeverity.Warning,
-                    $"Dangerous API in {f}",
+                    "Dangerous API in " + f,
                     AssetDatabase.LoadAssetAtPath<Object>(f)));
             }
         }
-    }
-
-    // ================= AUTO FIX =================
-    void AutoFix()
-    {
-        foreach (var i in issues)
-        {
-            if (i.message.Contains("Unsupported Shader") && i.ping is GameObject go)
-            {
-                var r = go.GetComponent<Renderer>();
-                if (r == null) continue;
-
-                var mats = r.sharedMaterials;
-                bool changed = false;
-
-                for (int idx = 0; idx < mats.Length; idx++)
-                {
-                    var mat = mats[idx];
-                    if (mat == null || mat.shader == null) continue;
-
-                    string shaderName = mat.shader.name;
-                    if (
-                        !shaderName.Contains("URP") &&
-                        !shaderName.Contains("Lit") &&
-                        !shaderName.Contains("Shader Graph")
-                    )
-                        continue;
-
-                    Shader safeShader = GetSafeShader(go);
-                    if (safeShader == null) continue;
-
-                    // 🚫 Material Variant → CLONE
-                    if (mat.isVariant)
-                    {
-                        var newMat = new Material(safeShader);
-                        newMat.name = mat.name + "_LunaSafe";
-
-                        if (mat.HasProperty("_MainTex"))
-                            newMat.mainTexture = mat.mainTexture;
-                        if (mat.HasProperty("_Color"))
-                            newMat.color = mat.color;
-
-                        mats[idx] = newMat;
-                        changed = true;
-
-                        Debug.Log($"[LUNA FIX] Clone Variant → {newMat.name} ({go.name})");
-                    }
-                    else
-                    {
-                        mat.shader = safeShader;
-                        changed = true;
-
-                        Debug.Log($"[LUNA FIX] Shader set → {safeShader.name} ({go.name})");
-                    }
-                }
-
-                if (changed)
-                    r.sharedMaterials = mats;
-            }
-
-            // ===== DOTWEEN =====
-            if (i.message.Contains("DOTween"))
-            {
-                string path = i.message.Replace("Blocked DOTween asset found: ", "");
-                AssetDatabase.DeleteAsset(path);
-                Debug.Log($"[LUNA FIX] Deleted DOTween asset: {path}");
-            }
-        }
-
-        ScanAndFixURPInProject(true);
-
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        Scan();
     }
 
     // ================= URP GLOBAL STRIP =================
@@ -241,13 +166,12 @@ public class LunaComplianceWindow : EditorWindow
             {
                 issues.Add(new LunaIssue(
                     LunaSeverity.Error,
-                    $"URP Shader Asset: {shaderName} ({path})",
+                    "URP Shader Asset: " + shaderName + " (" + path + ")",
                     mat
                 ));
 
                 if (!autoFix) continue;
 
-                // ⚠ Material Variant → clone
                 if (mat.isVariant)
                 {
                     var newMat = new Material(GetFallbackShaderForMaterial(mat));
@@ -259,44 +183,25 @@ public class LunaComplianceWindow : EditorWindow
                         newMat.color = mat.color;
 
                     AssetDatabase.CreateAsset(newMat, path.Replace(".mat", "_LunaSafe.mat"));
-                    Debug.Log($"[LUNA FIX] Clone material variant → {newMat.name}");
                 }
                 else
                 {
                     mat.shader = GetFallbackShaderForMaterial(mat);
                     EditorUtility.SetDirty(mat);
-                    Debug.Log($"[LUNA FIX] Shader replaced → {mat.shader.name} ({path})");
                 }
             }
         }
     }
+
     Shader GetFallbackShaderForMaterial(Material mat)
     {
-        // ưu tiên sprite
         if (mat.mainTexture != null)
             return Shader.Find("Sprites/Default");
 
         return Shader.Find("Unlit/Texture");
     }
-
-
-    Shader GetSafeShader(GameObject go)
-    {
-        // Sprite
-        if (go.GetComponent<SpriteRenderer>() != null)
-            return Shader.Find("Sprites/Default");
-
-        // UI
-        if (go.GetComponent<UnityEngine.UI.Graphic>() != null)
-            return Shader.Find("UI/Default");
-
-        // Fallback
-        return Shader.Find("Unlit/Texture");
-    }
-
 }
 
-// ================= SUPPORT =================
 public enum LunaSeverity { Info, Warning, Error }
 
 public class LunaIssue

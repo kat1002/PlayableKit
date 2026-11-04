@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Spine;
-using Spine.Unity;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -18,7 +17,7 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
     private readonly List<StaticAvatarImageUsage> sceneAvatarUsages = new List<StaticAvatarImageUsage>();
     private readonly List<RuntimeAssetWarning> runtimeWarnings = new List<RuntimeAssetWarning>();
 
-    private SkeletonDataAsset targetSkeletonDataAsset;
+    private ScriptableObject targetSkeletonDataAsset;
     private Sprite targetAvatarSprite;
     private string targetSkinName = "";
     private Vector2 scrollPosition;
@@ -40,10 +39,10 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         EditorGUILayout.LabelField("Active Scene", string.IsNullOrEmpty(activeScene.path) ? activeScene.name : activeScene.path);
 
         EditorGUILayout.Space(8);
-        targetSkeletonDataAsset = (SkeletonDataAsset)EditorGUILayout.ObjectField(
+        targetSkeletonDataAsset = (ScriptableObject)EditorGUILayout.ObjectField(
             "Skeleton Data Asset",
             targetSkeletonDataAsset,
-            typeof(SkeletonDataAsset),
+            typeof(ScriptableObject),
             false);
         targetSkinName = EditorGUILayout.TextField("Skin Name", targetSkinName);
         targetAvatarSprite = (Sprite)EditorGUILayout.ObjectField(
@@ -267,14 +266,15 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
 
         foreach (var root in scene.GetRootGameObjects())
         {
-            foreach (var graphic in root.GetComponentsInChildren<SkeletonGraphic>(true))
+            foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
             {
-                AddUsage(graphic, graphic.skeletonDataAsset, graphic.initialSkinName, "SkeletonGraphic");
-            }
-
-            foreach (var animation in root.GetComponentsInChildren<SkeletonAnimation>(true))
-            {
-                AddUsage(animation, animation.skeletonDataAsset, animation.initialSkinName, "SkeletonAnimation");
+                if (mb == null) continue;
+                string typeName = mb.GetType().Name;
+                if (typeName == "SkeletonGraphic" || typeName == "SkeletonAnimation")
+                {
+                    ReadSpineComponentData(mb, out Object skelAsset, out string initSkin);
+                    AddUsage(mb, skelAsset, initSkin, typeName);
+                }
             }
 
             foreach (var image in root.GetComponentsInChildren<Image>(true))
@@ -287,7 +287,19 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         Repaint();
     }
 
-    private void AddUsage(Component component, SkeletonDataAsset skeletonDataAsset, string initialSkinName, string componentType)
+    private static void ReadSpineComponentData(MonoBehaviour mb, out Object skeletonDataAsset, out string initialSkinName)
+    {
+        skeletonDataAsset = null;
+        initialSkinName = "";
+        if (mb == null) return;
+        SerializedObject so = new SerializedObject(mb);
+        SerializedProperty skelProp = so.FindProperty("skeletonDataAsset") ?? so.FindProperty("m_SkeletonDataAsset");
+        SerializedProperty skinProp = so.FindProperty("initialSkinName") ?? so.FindProperty("_initialSkinName");
+        if (skelProp != null) skeletonDataAsset = skelProp.objectReferenceValue;
+        if (skinProp != null) initialSkinName = skinProp.stringValue;
+    }
+
+    private void AddUsage(Component component, Object skeletonDataAsset, string initialSkinName, string componentType)
     {
         string objectPath = GetHierarchyPath(component.gameObject);
         string skeletonPath = skeletonDataAsset != null ? AssetDatabase.GetAssetPath(skeletonDataAsset) : "";
@@ -496,33 +508,22 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
 
             if (applySpine)
             {
-                foreach (var graphic in prefabRoot.GetComponentsInChildren<SkeletonGraphic>(true))
+                foreach (var mb in prefabRoot.GetComponentsInChildren<MonoBehaviour>(true))
                 {
-                    if (!IsCharacterComponent(graphic.gameObject, graphic.skeletonDataAsset)) continue;
+                    if (mb == null) continue;
+                    string typeName = mb.GetType().Name;
+                    if (typeName != "SkeletonGraphic" && typeName != "SkeletonAnimation") continue;
 
-                    Undo.RecordObject(graphic, UndoName);
-                    ApplyToComponent(graphic);
-                    EditorUtility.SetDirty(graphic);
+                    ReadSpineComponentData(mb, out Object skelAsset, out _);
+                    if (!IsCharacterComponent(mb.gameObject, skelAsset)) continue;
 
-                    if (PrefabUtility.IsPartOfPrefabInstance(graphic))
+                    Undo.RecordObject(mb, UndoName);
+                    ApplyToComponent(mb);
+                    EditorUtility.SetDirty(mb);
+
+                    if (PrefabUtility.IsPartOfPrefabInstance(mb))
                     {
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(graphic);
-                    }
-
-                    appliedCount++;
-                }
-
-                foreach (var animation in prefabRoot.GetComponentsInChildren<SkeletonAnimation>(true))
-                {
-                    if (!IsCharacterComponent(animation.gameObject, animation.skeletonDataAsset)) continue;
-
-                    Undo.RecordObject(animation, UndoName);
-                    ApplyToComponent(animation);
-                    EditorUtility.SetDirty(animation);
-
-                    if (PrefabUtility.IsPartOfPrefabInstance(animation))
-                    {
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(animation);
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(mb);
                     }
 
                     appliedCount++;
@@ -650,20 +651,19 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
 
     private void ApplyToComponent(Component component)
     {
-        if (component is SkeletonGraphic graphic)
-        {
-            graphic.skeletonDataAsset = targetSkeletonDataAsset;
-            graphic.initialSkinName = targetSkinName;
-            TryInitialize(graphic);
-            graphic.SetAllDirty();
-            return;
-        }
+        if (component == null) return;
 
-        if (component is SkeletonAnimation animation)
+        SerializedObject so = new SerializedObject(component);
+        SerializedProperty skelProp = so.FindProperty("skeletonDataAsset") ?? so.FindProperty("m_SkeletonDataAsset");
+        SerializedProperty skinProp = so.FindProperty("initialSkinName") ?? so.FindProperty("_initialSkinName");
+        if (skelProp != null) skelProp.objectReferenceValue = targetSkeletonDataAsset;
+        if (skinProp != null) skinProp.stringValue = targetSkinName;
+        so.ApplyModifiedProperties();
+
+        TryInitializeReflection(component);
+        if (component is Graphic graphic)
         {
-            animation.skeletonDataAsset = targetSkeletonDataAsset;
-            animation.initialSkinName = targetSkinName;
-            TryInitialize(animation);
+            graphic.SetAllDirty();
         }
     }
 
@@ -673,14 +673,20 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
 
         try
         {
-            var skeletonData = targetSkeletonDataAsset.GetSkeletonData(false);
+            MethodInfo getSkelData = targetSkeletonDataAsset.GetType().GetMethod("GetSkeletonData", new[] { typeof(bool) });
+            if (getSkelData == null) return true;
+
+            object skeletonData = getSkelData.Invoke(targetSkeletonDataAsset, new object[] { false });
             if (skeletonData == null)
             {
                 error = $"SkeletonDataAsset '{targetSkeletonDataAsset.name}' has no skeleton data.";
                 return false;
             }
 
-            Skin skin = skeletonData.FindSkin(targetSkinName);
+            MethodInfo findSkin = skeletonData.GetType().GetMethod("FindSkin", new[] { typeof(string) });
+            if (findSkin == null) return true;
+
+            object skin = findSkin.Invoke(skeletonData, new object[] { targetSkinName });
             if (skin == null)
             {
                 error = $"Skin '{targetSkinName}' not found in SkeletonDataAsset '{targetSkeletonDataAsset.name}'.";
@@ -696,27 +702,19 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         }
     }
 
-    private static void TryInitialize(SkeletonGraphic graphic)
+    private static void TryInitializeReflection(Component component)
     {
         try
         {
-            graphic.Initialize(true);
+            MethodInfo init = component.GetType().GetMethod("Initialize", new[] { typeof(bool) });
+            if (init != null)
+            {
+                init.Invoke(component, new object[] { true });
+            }
         }
         catch (Exception ex)
         {
-            Debug.LogWarning($"[SceneCharacterSkinApplier] Cannot initialize SkeletonGraphic '{GetHierarchyPath(graphic.gameObject)}': {ex.Message}");
-        }
-    }
-
-    private static void TryInitialize(SkeletonAnimation animation)
-    {
-        try
-        {
-            animation.Initialize(true);
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"[SceneCharacterSkinApplier] Cannot initialize SkeletonAnimation '{GetHierarchyPath(animation.gameObject)}': {ex.Message}");
+            Debug.LogWarning($"[SceneCharacterSkinApplier] Cannot initialize '{GetHierarchyPath(component.gameObject)}': {ex.Message}");
         }
     }
 
@@ -911,14 +909,15 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         var result = new List<CharacterUsage>();
         if (root == null) return result;
 
-        foreach (var graphic in root.GetComponentsInChildren<SkeletonGraphic>(true))
+        foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
         {
-            AddPrefabUsage(result, graphic, graphic.skeletonDataAsset, graphic.initialSkinName, "SkeletonGraphic");
-        }
-
-        foreach (var animation in root.GetComponentsInChildren<SkeletonAnimation>(true))
-        {
-            AddPrefabUsage(result, animation, animation.skeletonDataAsset, animation.initialSkinName, "SkeletonAnimation");
+            if (mb == null) continue;
+            string typeName = mb.GetType().Name;
+            if (typeName == "SkeletonGraphic" || typeName == "SkeletonAnimation")
+            {
+                ReadSpineComponentData(mb, out Object skelAsset, out string initSkin);
+                AddPrefabUsage(result, mb, skelAsset, initSkin, typeName);
+            }
         }
 
         return result;
@@ -927,7 +926,7 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
     private static void AddPrefabUsage(
         List<CharacterUsage> result,
         Component component,
-        SkeletonDataAsset skeletonDataAsset,
+        Object skeletonDataAsset,
         string initialSkinName,
         string componentType)
     {
@@ -1003,7 +1002,7 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         return result;
     }
 
-    private static bool IsCharacterComponent(GameObject gameObject, SkeletonDataAsset skeletonDataAsset)
+    private static bool IsCharacterComponent(GameObject gameObject, Object skeletonDataAsset)
     {
         string objectPath = GetHierarchyPath(gameObject);
         string skeletonPath = skeletonDataAsset != null ? AssetDatabase.GetAssetPath(skeletonDataAsset) : "";
@@ -1174,7 +1173,7 @@ public class SceneCharacterSkinApplierWindow : EditorWindow
         public GameObject GameObject;
         public string ComponentType;
         public string ObjectPath;
-        public SkeletonDataAsset SkeletonDataAsset;
+        public Object SkeletonDataAsset;
         public string SkeletonAssetPath;
         public string InitialSkinName;
         public bool Selected;

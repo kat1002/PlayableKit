@@ -7,12 +7,11 @@ namespace PlayableTemplate.Core
     /// engine or ambient bed), a shared one-shot source, and a global mute switch. Subclass
     /// and call CreateLoopSources(...) from OnAwake() to wire game-specific clips, and
     /// PlayOneShotSafe(...)/PlayOneShotSafeWithPitch(...) for game-specific one-shots.
+    /// Luna-safe: keeps mute state in memory (no PlayerPrefs) and avoids try/catch.
     /// </summary>
     public class AudioManagerBase : MonoBehaviour
     {
         public static AudioManagerBase Instance { get; protected set; }
-
-        private const string MutePrefsKey = "PlayableTemplate.Muted";
 
         [Header("Loop crossfade (e.g. idle -> high with speed)")]
         [Range(0f, 1f)] public float loopVolume = 0.6f;
@@ -39,7 +38,11 @@ namespace PlayableTemplate.Core
             oneShotSource.playOnAwake = false;
             oneShotSource.spatialBlend = 0f;
 
-            IsMuted = PlayerPrefs.GetInt(MutePrefsKey, 0) == 1;
+            if (LunaManager.Instance != null)
+            {
+                IsMuted = LunaManager.Instance.IsMuted;
+                LunaManager.Instance.MuteChanged += SetMuted;
+            }
             AudioListener.volume = IsMuted ? 0f : 1f;
 
             OnAwake();
@@ -97,24 +100,16 @@ namespace PlayableTemplate.Core
 
         protected void PlayOneShotSafe(AudioClip clip, float volume, string label)
         {
-            if (clip == null || oneShotSource == null) return;
-            try { oneShotSource.PlayOneShot(clip, volume); }
-            catch (System.Exception e) { Debug.LogWarning("[AudioManager] " + label + " failed: " + e.Message); }
+            if (clip == null || oneShotSource == null || IsMuted) return;
+            oneShotSource.PlayOneShot(clip, volume);
         }
 
         protected void PlayOneShotSafeWithPitch(AudioClip clip, float volume, Vector2 pitchRange, string label)
         {
-            if (clip == null || oneShotSource == null) return;
-            // A clip that fails to decode on WebGL's stricter browser-native audio path can
-            // throw deep inside PlayOneShot's native bridge; guard so one bad clip can never
-            // take down the rest of that frame's Update() calls or corrupt the shared source.
-            try
-            {
-                oneShotSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
-                oneShotSource.PlayOneShot(clip, volume);
-            }
-            catch (System.Exception e) { Debug.LogWarning("[AudioManager] " + label + " failed: " + e.Message); }
-            finally { oneShotSource.pitch = 1f; }
+            if (clip == null || oneShotSource == null || IsMuted) return;
+            oneShotSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
+            oneShotSource.PlayOneShot(clip, volume);
+            oneShotSource.pitch = 1f;
         }
 
         // ---- Mute ------------------------------------------------------------------------
@@ -124,12 +119,15 @@ namespace PlayableTemplate.Core
         {
             IsMuted = muted;
             AudioListener.volume = muted ? 0f : 1f;
-            PlayerPrefs.SetInt(MutePrefsKey, muted ? 1 : 0);
-            OnMuteChanged?.Invoke(muted);
+            if (OnMuteChanged != null) OnMuteChanged.Invoke(muted);
         }
 
         protected virtual void OnDestroy()
         {
+            if (LunaManager.Instance != null)
+            {
+                LunaManager.Instance.MuteChanged -= SetMuted;
+            }
             if (Instance == this) Instance = null;
         }
     }

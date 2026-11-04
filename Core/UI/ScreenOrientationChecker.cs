@@ -4,22 +4,31 @@ using UnityEngine;
 
 public class ScreenOrientationChecker : MonoBehaviour
 {
-    [SerializeField] TScreen _currentScreen;
-    
+    [SerializeField] private TScreen _currentScreen;
+
     public TScreen currentScreen => _currentScreen;
 
-    public bool isChange;
-
+    public bool isChange = true;
 
     [SerializeField] private List<GameObject> obj_Hori;
     [SerializeField] private List<GameObject> obj_Verti;
 
+    [Header("Optional Camera FOV")]
+    [SerializeField] private bool adjustCameraFov = false;
+    [SerializeField] private Camera targetCamera;
+    [SerializeField] private float landscapeFov = 65f;
+    [SerializeField] private float verticalFov = 80f;
 
     private void Awake()
     {
+        if (adjustCameraFov && targetCamera == null)
+        {
+            targetCamera = Camera.main;
+        }
         GameEventManager.RegisterEvent(GameEventManager.EventId.LandscapeScreen, OnHori);
         GameEventManager.RegisterEvent(GameEventManager.EventId.VerticalScreen, OnVerti);
     }
+
     private void OnDestroy()
     {
         GameEventManager.UnRegisterEvent(GameEventManager.EventId.LandscapeScreen, OnHori);
@@ -33,17 +42,36 @@ public class ScreenOrientationChecker : MonoBehaviour
 
     private void OnHori()
     {
-        obj_Hori.ForEach(n => n.SetActive(true));
-        obj_Verti.ForEach(n => n.SetActive(false));
+        SetListActive(obj_Hori, true);
+        SetListActive(obj_Verti, false);
 
-        if (Camera.main != null) Camera.main.fieldOfView = 65;
+        if (adjustCameraFov && targetCamera != null)
+        {
+            targetCamera.fieldOfView = landscapeFov;
+        }
     }
+
     private void OnVerti()
     {
-        obj_Hori.ForEach(n => n.SetActive(false));
-        obj_Verti.ForEach(n => n.SetActive(true));
+        SetListActive(obj_Hori, false);
+        SetListActive(obj_Verti, true);
 
-        if (Camera.main != null) Camera.main.fieldOfView = 80;
+        if (adjustCameraFov && targetCamera != null)
+        {
+            targetCamera.fieldOfView = verticalFov;
+        }
+    }
+
+    private static void SetListActive(List<GameObject> list, bool active)
+    {
+        if (list == null) return;
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] != null)
+            {
+                list[i].SetActive(active);
+            }
+        }
     }
 
     public void OnLoadScreen()
@@ -64,21 +92,13 @@ public class ScreenOrientationChecker : MonoBehaviour
         if (newScreen != _currentScreen)
         {
             OnScreenChanged(newScreen);
-
             _currentScreen = newScreen;
         }
     }
 
-    private TScreen GetCurrentScreen()
+    public static TScreen GetCurrentScreen()
     {
-        if (Screen.width > Screen.height)
-        {
-            return TScreen.LandscapeScreen;
-        }
-        else
-        {
-            return TScreen.VerticalScreen;
-        }
+        return Screen.width > Screen.height ? TScreen.LandscapeScreen : TScreen.VerticalScreen;
     }
 
     private void OnScreenChanged(TScreen screen)
@@ -92,8 +112,8 @@ public class ScreenOrientationChecker : MonoBehaviour
             GameEventManager.RaisedEvent(GameEventManager.EventId.VerticalScreen);
         }
     }
-
 }
+
 public enum TScreen
 {
     None,

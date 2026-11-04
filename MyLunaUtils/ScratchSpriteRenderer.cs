@@ -1,4 +1,4 @@
-﻿using Playable.Tweening;
+using Playable.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -325,7 +325,7 @@ public class ScratchSpriteRenderer : MonoBehaviour
                     ApplyFinalTexture();
                     onCompleted?.Invoke();
                    /// SetProgress(1);
-                    Debug.Log("1");
+                    
                 });
         }
         else
@@ -382,12 +382,12 @@ public class ScratchSpriteRenderer : MonoBehaviour
 
         // [FIX 2] Chờ hết frame này để đảm bảo Texture dưới GPU đã cập nhật xong
         // Nếu không có dòng này, xóa overlay ngay có thể bị nháy 1 frame
-        yield return new WaitForEndOfFrame();
+        yield return null;
 
         // 5. Sự kiện hoàn thành
         onCompleted?.Invoke();
   //      SetProgress(1); // (Nếu bạn có dùng hàm này ở class cha)
-        Debug.Log("2"); 
+         
 
         // 6. Dọn dẹp (Lúc này xóa Overlay đi thì người chơi cũng không biết vì ảnh dưới đã y hệt rồi)
         Destroy(overlayObj);

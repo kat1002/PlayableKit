@@ -2,6 +2,7 @@ using System;
 using BlackGemsGlobal.SeatAway.GamePlayEvent;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 // What to do when the player has not touched the playable in time.
 public enum NoInteractionResult
@@ -11,7 +12,8 @@ public enum NoInteractionResult
 }
 
 /// <summary>
-/// Unified Playable lifecycle bridge combining the best features from squishy_pa, mukbang_pa, and Obby-Playable-Ads.
+/// Unified Playable lifecycle bridge combining timer, no-interaction timeout, optional tap-count-to-store,
+/// store-return detection, and Luna Lifecycle/Playable/Analytics integration.
 /// Place one instance in each playable scene.
 /// GoToStore visits the store and keeps playing; EndGame is the single final exit.
 /// </summary>
@@ -37,11 +39,18 @@ public class LunaManager : MonoBehaviour
         private readonly bool m_UseEndTimer;
         private readonly float m_EndTimerSeconds;
         private readonly bool m_UseNoInteractionTimeout;
+        private readonly bool m_UseTapCountToStore;
+        private readonly bool m_SwitchTapRuleAfterStore;
+        private readonly int m_TapsAfterFirstStore;
+
+        private int m_TapsToStore;
+        private int m_TapCount;
         private float m_NoInteractionLeft;
         private bool m_NoInteractionFired;
         private bool m_EndTimerRunning;
         private float m_EndTimerLeft;
         private float m_LastInstallTime;
+        private bool m_HasInstallTime;
 
         public bool IsStarted { get; private set; }
         public bool HasStarted { get { return IsStarted; } }
@@ -50,15 +59,29 @@ public class LunaManager : MonoBehaviour
         public bool HasOpenedStore { get; private set; }
         public float PlayTime { get; private set; }
         public float RemainingSeconds { get { return m_EndTimerLeft; } }
+        public int TapCount { get { return m_TapCount; } }
+        public int TapsToStore { get { return m_TapsToStore; } }
 
-        public Session(bool useEndTimer, float endTimerSeconds, bool useNoInteractionTimeout,
-            float noInteractionTimeoutSeconds)
+        public Session(
+            bool useEndTimer,
+            float endTimerSeconds,
+            bool useNoInteractionTimeout,
+            float noInteractionTimeoutSeconds,
+            bool useTapCountToStore = false,
+            int tapsToStore = 6,
+            bool switchTapRuleAfterStore = true,
+            int tapsAfterFirstStore = 1)
         {
             m_UseEndTimer = useEndTimer;
             m_EndTimerSeconds = Mathf.Max(0f, endTimerSeconds);
             m_UseNoInteractionTimeout = useNoInteractionTimeout;
             m_NoInteractionLeft = Mathf.Max(0f, noInteractionTimeoutSeconds);
             m_EndTimerLeft = m_EndTimerSeconds;
+
+            m_UseTapCountToStore = useTapCountToStore;
+            m_TapsToStore = Mathf.Max(1, tapsToStore);
+            m_SwitchTapRuleAfterStore = switchTapRuleAfterStore;
+            m_TapsAfterFirstStore = Mathf.Max(1, tapsAfterFirstStore);
         }
 
         // Returns true only the first time. Cancels the no-interaction timer.
@@ -82,10 +105,43 @@ public class LunaManager : MonoBehaviour
         // False when the previous store open is too recent.
         public bool TryOpenStore(float now)
         {
-            if (HasOpenedStore && now - m_LastInstallTime < InstallRepeatGuardSeconds) return false;
+            if (m_HasInstallTime && now - m_LastInstallTime < InstallRepeatGuardSeconds) return false;
             HasOpenedStore = true;
+            m_HasInstallTime = true;
             m_LastInstallTime = now;
+
+            if (m_UseTapCountToStore)
+            {
+                m_TapCount = 0;
+                if (m_SwitchTapRuleAfterStore)
+                {
+                    m_TapsToStore = m_TapsAfterFirstStore;
+                }
+            }
             return true;
+        }
+
+        /// <summary>
+        /// Increments the tap counter when tap-to-store is enabled.
+        /// Returns true on the tap that reaches the current threshold.
+        /// </summary>
+        public bool RegisterTap()
+        {
+            if (!m_UseTapCountToStore || IsEnded) return false;
+            m_TapCount++;
+            if (m_TapCount < m_TapsToStore) return false;
+            m_TapCount = 0;
+            if (m_SwitchTapRuleAfterStore)
+            {
+                m_TapsToStore = m_TapsAfterFirstStore;
+            }
+            return true;
+        }
+
+        public void SetTapsToStore(int newTapsToStore)
+        {
+            m_TapsToStore = Mathf.Max(1, newTapsToStore);
+            m_TapCount = 0;
         }
 
         // (Re)starts the end timer. It only counts down while started and not ended.
@@ -128,21 +184,34 @@ public class LunaManager : MonoBehaviour
     [SerializeField] private bool m_EndOnTimer = true;
     [SerializeField] private float currentEndTime = 40f;
 
-    [Header("First Interaction")]
+    [Header("First Interaction & Idle Timeout")]
     [SerializeField] private bool m_StartOnFirstPointerDown = false;
     [SerializeField] private bool m_UseNoInteractionTimeout = false;
     [SerializeField, Min(1f)] private float m_NoInteractionTimeoutSeconds = 10f;
     [SerializeField] private NoInteractionResult m_NoInteractionResult = NoInteractionResult.KeepPlayable;
 
+    [Header("Optional Tap Count To Store")]
+    [Tooltip("When enabled, automatically counts pointer downs and triggers GoToStore / fullscreenBtn when m_TapsToStore is reached.")]
+    [SerializeField] private bool m_UseTapCountToStore = false;
+    [SerializeField] private bool m_AutoCountGlobalPointerDown = true;
+    [SerializeField, Min(1)] private int m_TapsToStore = 6;
+    [SerializeField] private bool m_SwitchTapRuleAfterStore = true;
+    [SerializeField, Min(1)] private int m_TapsAfterFirstStore = 1;
+    [SerializeField] private bool m_OpenStoreImmediatelyOnTapLimit = false;
+    [SerializeField] private GameObject m_FullscreenCtaButton;
+
     [Header("Events")]
     public UnityEvent onEndTimeEventReached = new UnityEvent();
     public UnityEvent onNoInteractionTimeout = new UnityEvent();
+    public UnityEvent onTapLimitReached = new UnityEvent();
 
     public event Action GameplayStarted;
     public event Action GameplayEnded;
     public event Action StoreVisited;
+    public event Action StoreReturned;
     public event Action EndTimerReached;
     public event Action NoInteractionTimedOut;
+    public event Action TapLimitReached;
     public event Action<bool> PauseChanged;
     public event Action<bool> MuteChanged;
 
@@ -150,6 +219,8 @@ public class LunaManager : MonoBehaviour
     public static LunaManager Instance { get { return instance; } }
 
     private Session m_Session;
+    private int m_LastTapFrame = -1;
+    private bool m_LeftForStore;
 
     public bool IsStarted { get { return GetSession().IsStarted; } }
     public bool HasStarted { get { return IsStarted; } }
@@ -159,6 +230,7 @@ public class LunaManager : MonoBehaviour
     public bool IsStoreVisited { get { return HasOpenedStore; } }
     public float PlayTime { get { return GetSession().PlayTime; } }
     public float RemainingSeconds { get { return GetSession().RemainingSeconds; } }
+    public int TapCount { get { return GetSession().TapCount; } }
     public bool IsPaused { get; private set; }
     public bool IsMuted { get; private set; }
 
@@ -172,6 +244,19 @@ public class LunaManager : MonoBehaviour
 
         instance = this;
         GetSession();
+
+        if (m_FullscreenCtaButton != null)
+        {
+            m_FullscreenCtaButton.SetActive(false);
+        }
+
+#if UNITY_LUNA
+        if (EventSystem.current != null && EventSystem.current.GetComponent<StandaloneInputModule>() == null)
+        {
+            EventSystem.current.gameObject.AddComponent<StandaloneInputModule>();
+        }
+#endif
+
         PlayableKit.Analytics.PlayableAnalytics.AddSink(Shared.UI.Adapters.LunaAnalyticsSink.Instance);
     }
 
@@ -197,12 +282,32 @@ public class LunaManager : MonoBehaviour
         if (instance == this) instance = null;
     }
 
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus && HasOpenedStore)
+        {
+            m_LeftForStore = true;
+        }
+        else if (hasFocus && m_LeftForStore)
+        {
+            m_LeftForStore = false;
+            if (StoreReturned != null) StoreReturned();
+        }
+    }
+
     private Session GetSession()
     {
         if (m_Session == null)
         {
-            m_Session = new Session(m_UseEndTimer, currentEndTime, m_UseNoInteractionTimeout,
-                m_NoInteractionTimeoutSeconds);
+            m_Session = new Session(
+                m_UseEndTimer,
+                currentEndTime,
+                m_UseNoInteractionTimeout,
+                m_NoInteractionTimeoutSeconds,
+                m_UseTapCountToStore,
+                m_TapsToStore,
+                m_SwitchTapRuleAfterStore,
+                m_TapsAfterFirstStore);
         }
         return m_Session;
     }
@@ -219,14 +324,31 @@ public class LunaManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Logs a custom Luna Analytics event.
+    /// </summary>
+    public static void TrackEvent(string eventName)
+    {
+        if (string.IsNullOrEmpty(eventName)) return;
+        Luna.Unity.Analytics.LogEvent(eventName, 0);
+    }
+
     private void Update()
     {
         if (IsPaused) return;
 
         Session session = GetSession();
-        if (m_StartOnFirstPointerDown && !session.IsStarted && PointerDownThisFrame())
+        bool pointerDown = PointerDownThisFrame();
+
+        if (m_StartOnFirstPointerDown && !session.IsStarted && pointerDown)
         {
             StartGame();
+        }
+
+        if (m_UseTapCountToStore && m_AutoCountGlobalPointerDown && pointerDown && m_LastTapFrame != Time.frameCount)
+        {
+            m_LastTapFrame = Time.frameCount;
+            RegisterTap();
         }
 
         TickResult result = session.Tick(ClampTickSeconds(Time.unscaledDeltaTime));
@@ -239,6 +361,38 @@ public class LunaManager : MonoBehaviour
             if (m_NoInteractionResult == NoInteractionResult.EndGame) EndGame(false);
             if (onNoInteractionTimeout != null) onNoInteractionTimeout.Invoke();
             if (NoInteractionTimedOut != null) NoInteractionTimedOut();
+        }
+    }
+
+    /// <summary>
+    /// Increments the tap counter when <c>m_UseTapCountToStore</c> is enabled.
+    /// Can also be called manually from UI buttons or gameplay interactions.
+    /// </summary>
+    public void RegisterTap()
+    {
+        StartGame();
+        if (!GetSession().RegisterTap()) return;
+
+        if (m_FullscreenCtaButton != null && !m_FullscreenCtaButton.activeSelf)
+        {
+            m_FullscreenCtaButton.SetActive(true);
+        }
+
+        if (onTapLimitReached != null) onTapLimitReached.Invoke();
+        if (TapLimitReached != null) TapLimitReached();
+
+        if (m_OpenStoreImmediatelyOnTapLimit)
+        {
+            GoToStore();
+        }
+    }
+
+    public void SetTapsToStore(int newTapsToStore)
+    {
+        GetSession().SetTapsToStore(newTapsToStore);
+        if (m_FullscreenCtaButton != null)
+        {
+            m_FullscreenCtaButton.SetActive(false);
         }
     }
 
@@ -314,14 +468,26 @@ public class LunaManager : MonoBehaviour
 
     public void ResetSession()
     {
-        m_Session = new Session(m_UseEndTimer, currentEndTime, m_UseNoInteractionTimeout,
-            m_NoInteractionTimeoutSeconds);
+        m_Session = new Session(
+            m_UseEndTimer,
+            currentEndTime,
+            m_UseNoInteractionTimeout,
+            m_NoInteractionTimeoutSeconds,
+            m_UseTapCountToStore,
+            m_TapsToStore,
+            m_SwitchTapRuleAfterStore,
+            m_TapsAfterFirstStore);
     }
 
     // Opens synchronously so it stays inside the player's click.
+    // Uses Time.realtimeSinceStartup because Time.unscaledTime freezes while the store tab is open.
     private void OpenStore()
     {
-        if (!GetSession().TryOpenStore(Time.unscaledTime)) return;
+        if (!GetSession().TryOpenStore(Time.realtimeSinceStartup)) return;
+        if (m_FullscreenCtaButton != null && m_FullscreenCtaButton.activeSelf)
+        {
+            m_FullscreenCtaButton.SetActive(false);
+        }
         Luna.Unity.Playable.InstallFullGame();
         if (StoreVisited != null) StoreVisited();
     }
@@ -329,6 +495,7 @@ public class LunaManager : MonoBehaviour
     private void HandlePause()
     {
         IsPaused = true;
+        if (HasOpenedStore) m_LeftForStore = true;
         AudioListener.pause = true;
         if (PauseChanged != null) PauseChanged(true);
     }
@@ -338,6 +505,11 @@ public class LunaManager : MonoBehaviour
         IsPaused = false;
         AudioListener.pause = IsMuted;
         if (PauseChanged != null) PauseChanged(false);
+        if (m_LeftForStore)
+        {
+            m_LeftForStore = false;
+            if (StoreReturned != null) StoreReturned();
+        }
     }
 
     private void HandleMute()

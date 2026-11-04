@@ -80,6 +80,10 @@ namespace PlayableTemplate.Core.EditorTools
             uiSo.FindProperty("loadingScreen").objectReferenceValue = canvasGo.transform.Find("LoadingScreen").GetComponent<LoadingScreenController>();
             uiSo.ApplyModifiedProperties();
 
+            var gmSo = new SerializedObject(gmGo.GetComponent<GameManagerBase>());
+            gmSo.FindProperty("ui").objectReferenceValue = uiBase;
+            gmSo.ApplyModifiedProperties();
+
             AssetDatabase.SaveAssets();
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(scene, ScenePath);

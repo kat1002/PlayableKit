@@ -1,27 +1,26 @@
-﻿using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using Spine.Unity;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class LunaSpineBinaryInspector : EditorWindow
+public class LunaSpineSceneSkelScanner : EditorWindow
 {
     class SpineUsage
     {
         public GameObject gameObject;
-        public SkeletonDataAsset skeletonDataAsset;
+        public Object skeletonDataAsset;
         public string spineFilePath;
     }
-enum ViewMode
+
+    enum ViewMode
     {
         All,
         SpineFile,
         GameObject
     }
 
-    static List<SpineUsage> usages = new();
+    static readonly List<SpineUsage> usages = new List<SpineUsage>();
 
     Vector2 scroll;
     ViewMode viewMode = ViewMode.All;
@@ -29,21 +28,21 @@ enum ViewMode
     [MenuItem("Tools/MyLunaHelper/Spine Binary Inspector")]
     static void Open()
     {
-        GetWindow<LunaSpineBinaryInspector>("Spine Binary Inspector");
+        GetWindow<LunaSpineSceneSkelScanner>("Spine Binary Inspector");
     }
 
     void OnGUI()
     {
         GUILayout.Space(6);
-        GUILayout.Label("🔥 Luna Spine Inspector (Scene + Project)", EditorStyles.boldLabel);
-        GUILayout.Label($"Active Scene: {SceneManager.GetActiveScene().name}");
+        GUILayout.Label("Luna Spine Inspector (Scene + Project)", EditorStyles.boldLabel);
+        GUILayout.Label("Active Scene: " + SceneManager.GetActiveScene().name);
 
         GUILayout.Space(6);
 
-        if (GUILayout.Button("🔍 Scan Current Scene", GUILayout.Height(30)))
+        if (GUILayout.Button("Scan Current Scene", GUILayout.Height(30)))
             ScanScene();
 
-        if (GUILayout.Button("🌍 Scan Entire Project", GUILayout.Height(30)))
+        if (GUILayout.Button("Scan Entire Project", GUILayout.Height(30)))
             ScanProject();
 
         if (usages.Count == 0)
@@ -59,7 +58,7 @@ enum ViewMode
         GUILayout.Space(6);
 
         EditorGUILayout.HelpBox(
-            $"Primary: {GetPrimaryCount()} | Total refs: {usages.Count}",
+            "Primary: " + GetPrimaryCount() + " | Total refs: " + usages.Count,
             MessageType.Warning
         );
 
@@ -77,17 +76,21 @@ enum ViewMode
         EditorGUILayout.EndScrollView();
     }
 
-    // ================= SCAN =================
+    // ================= SCAN (Decoupled from Spine DLL via SerializedObject) =================
 
     static void ScanScene()
     {
         usages.Clear();
 
-        foreach (var anim in Object.FindObjectsOfType<SkeletonAnimation>(true))
-            CollectUsage(anim.gameObject, anim.skeletonDataAsset);
-
-        foreach (var graphic in Object.FindObjectsOfType<SkeletonGraphic>(true))
-            CollectUsage(graphic.gameObject, graphic.skeletonDataAsset);
+        foreach (var mb in Object.FindObjectsOfType<MonoBehaviour>(true))
+        {
+            if (mb == null) continue;
+            string typeName = mb.GetType().Name;
+            if (typeName == "SkeletonAnimation" || typeName == "SkeletonGraphic")
+            {
+                CollectUsage(mb.gameObject, GetSkeletonDataAsset(mb));
+            }
+        }
     }
 
     static void ScanProject()
@@ -111,11 +114,15 @@ enum ViewMode
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 if (prefab == null) continue;
 
-                foreach (var anim in prefab.GetComponentsInChildren<SkeletonAnimation>(true))
-                    CollectUsage(anim.gameObject, anim.skeletonDataAsset);
-
-                foreach (var graphic in prefab.GetComponentsInChildren<SkeletonGraphic>(true))
-                    CollectUsage(graphic.gameObject, graphic.skeletonDataAsset);
+                foreach (var mb in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+                {
+                    if (mb == null) continue;
+                    string typeName = mb.GetType().Name;
+                    if (typeName == "SkeletonAnimation" || typeName == "SkeletonGraphic")
+                    {
+                        CollectUsage(mb.gameObject, GetSkeletonDataAsset(mb));
+                    }
+                }
             }
         }
         finally
@@ -126,7 +133,16 @@ enum ViewMode
         Debug.Log("[Luna] ScanProject DONE");
     }
 
-    static void CollectUsage(GameObject go, SkeletonDataAsset asset)
+    public static Object GetSkeletonDataAsset(MonoBehaviour spineComponent)
+    {
+        if (spineComponent == null) return null;
+        SerializedObject so = new SerializedObject(spineComponent);
+        SerializedProperty prop = so.FindProperty("skeletonDataAsset");
+        if (prop == null) prop = so.FindProperty("m_SkeletonDataAsset");
+        return prop != null ? prop.objectReferenceValue : null;
+    }
+
+    static void CollectUsage(GameObject go, Object asset)
     {
         if (asset == null) return;
 
@@ -209,7 +225,7 @@ enum ViewMode
 
         EditorGUILayout.LabelField("• " + go.name);
 
-        if (GUILayout.Button("📍 Ping GO", GUILayout.Width(100)))
+        if (GUILayout.Button("Ping GO", GUILayout.Width(100)))
         {
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
 
@@ -236,7 +252,7 @@ enum ViewMode
 
         Object spineAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
 
-        if (GUILayout.Button("📁 Ping File", GUILayout.Width(100)))
+        if (GUILayout.Button("Ping File", GUILayout.Width(100)))
         {
             Selection.activeObject = spineAsset;
             EditorGUIUtility.PingObject(spineAsset);
@@ -252,5 +268,4 @@ enum ViewMode
 
         return usages.Select(x => x.spineFilePath).Distinct().Count();
     }
-
 }
