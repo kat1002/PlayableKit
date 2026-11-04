@@ -10,6 +10,36 @@ Consolidated reusable toolkit for Unity Playable Ads (Unity Playworks / Luna), c
 
 ---
 
+## Installation
+
+### Via Unity Package Manager (Git URL)
+
+1. In Unity Editor, open **Window** > **Package Manager**.
+2. Click the **+** button in the top left corner of the window.
+3. Select **Add package from git URL...**.
+4. Paste the Git URL:
+   ```text
+   https://github.com/kat1002/PlayableKit.git
+   ```
+   *(Optional)* You can also specify a specific branch, tag, or commit hash (e.g. `#master`):
+   ```text
+   https://github.com/kat1002/PlayableKit.git#master
+   ```
+
+### Via `Packages/manifest.json`
+
+Add the package entry directly to your project's `Packages/manifest.json` dependencies:
+
+```json
+{
+  "dependencies": {
+    "com.phuc.playablekit": "https://github.com/kat1002/PlayableKit.git"
+  }
+}
+```
+
+---
+
 ## Repository Structure
 
 ```text
