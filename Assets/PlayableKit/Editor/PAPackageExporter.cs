@@ -31,6 +31,16 @@ namespace PlayableKit.Editor
             ExportToPath(outputPath);
         }
 
+        public static void ExportPackageBatchmode()
+        {
+            string outputPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../PlayableKit.unitypackage"));
+            bool ok = ExportToPath(outputPath);
+            if (!ok)
+            {
+                EditorApplication.Exit(1);
+            }
+        }
+
         public static bool ExportToPath(string outputPath)
         {
             List<string> roots = new List<string>();

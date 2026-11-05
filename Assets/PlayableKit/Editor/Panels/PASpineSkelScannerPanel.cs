@@ -28,7 +28,7 @@ namespace PlayableKit.Editor
         ViewMode viewMode = ViewMode.All;
 
         [MenuItem("Tools/MyLunaHelper/Spine Binary Inspector")]
-        static void Open()
+        public static void Open()
         {
             GetWindow<PASpineSkelScannerPanel>("Spine Binary Inspector");
         }

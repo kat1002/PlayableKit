@@ -11,7 +11,7 @@ namespace PlayableKit.Editor
         readonly List<LunaIssue> issues = new List<LunaIssue>();
 
         [MenuItem("Tools/MyLunaHelper/Compliance Tool")]
-        static void Open()
+        public static void Open()
         {
             GetWindow<PALunaCompliancePanel>("Luna Compliance");
         }
