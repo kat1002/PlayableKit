@@ -33,7 +33,7 @@ Add the package entry directly to your project's `Packages/manifest.json` depend
 ```json
 {
   "dependencies": {
-    "com.phuc.playablekit": "https://github.com/kat1002/PlayableKit.git"
+    "com.kat.playablekit": "https://github.com/kat1002/PlayableKit.git"
   }
 }
 ```

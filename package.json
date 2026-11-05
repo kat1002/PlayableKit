@@ -1,5 +1,5 @@
 {
-  "name": "com.phuc.playablekit",
+  "name": "com.kat.playablekit",
   "version": "1.0.0",
   "displayName": "PlayableKit (Luna / Playworks Suite)",
   "description": "Unified Luna-safe playable ad toolkit combining PlayableKit, PlayableUIKit, LunaSafeUI, Core/Luna, Core/Video, MyLunaUtils, LunaTools, and PlayableTemplate.",
@@ -12,6 +12,6 @@
     "tween"
   ],
   "author": {
-    "name": "Phuc"
+    "name": "kat1002"
   }
 }
