@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: UI_Shine_M
-  m_Shader: {fileID: 4800000, guid: 66417275f7b70304a827f7903d258712, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7877d66e741f8254d9cca71b2c35fef8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

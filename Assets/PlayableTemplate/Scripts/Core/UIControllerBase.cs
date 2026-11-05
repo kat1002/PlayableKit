@@ -83,8 +83,8 @@ namespace PlayableTemplate.Core
             if (active.hand != null) active.hand.gameObject.SetActive(false);
             if (active.hintText != null) active.hintText.gameObject.SetActive(false);
             if (active.startObj != null) active.startObj.SetActive(false);
-            if (active.introPulseA != null) active.introPulseA.StopAndReset();
-            if (active.introPulseB != null) active.introPulseB.StopAndReset();
+            if (active.introPulseA != null) active.introPulseA.Stop(true);
+            if (active.introPulseB != null) active.introPulseB.Stop(true);
         }
 
         public virtual void OnFirstTap()

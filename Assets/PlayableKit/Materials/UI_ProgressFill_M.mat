@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: UI_ProgressFill_M
-  m_Shader: {fileID: 4800000, guid: 46704ee3fa17f784f8a058eacb486832, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7ef7de3d1d8491045956dded6e12b706, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

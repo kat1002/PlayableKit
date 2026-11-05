@@ -25,7 +25,6 @@ public sealed class LunaTweenAnimation : MonoBehaviour
     [SerializeField] private bool m_IsRelative;
     [SerializeField] private bool m_IsFrom;
     [SerializeField] private bool m_IsIndependentUpdate;
-    [SerializeField] private bool m_AutoKill;
     [SerializeField] private bool m_AutoPlay = true;
 
     public Tween tween { get; private set; }
@@ -110,7 +109,7 @@ public sealed class LunaTweenAnimation : MonoBehaviour
             tweener.From();
         }
 
-        tween = tweener.SetAutoKill(m_AutoKill);
+        tween = tweener;
         tween.Pause();
     }
 }

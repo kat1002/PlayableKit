@@ -9,7 +9,7 @@ namespace PlayableTemplate.Core.EditorTools
     /// </summary>
     public class PlayableExportSettings : ScriptableObject
     {
-        private const string AssetPath = "Assets/_Template/PlayableExportSettings.asset";
+        private const string AssetPath = "Assets/PlayableTemplate/PlayableExportSettings.asset";
 
         [Tooltip("Leave empty to use the currently active/open scene.")]
         public string sceneOverridePath = "";

@@ -1,6 +1,6 @@
 {
   "name": "com.kat.playablekit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "PlayableKit (Luna / Playworks Suite)",
   "description": "Unified Luna-safe playable ad toolkit combining PlayableKit, PlayableUIKit, LunaSafeUI, Core/Luna, Core/Video, MyLunaUtils, LunaTools, and PlayableTemplate.",
   "unity": "2021.3",

@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace PlayableTemplate.Core.EditorTools
@@ -21,36 +22,42 @@ namespace PlayableTemplate.Core.EditorTools
         [MenuItem("Tools/Playable/Add Mute Button + Loading Screen To Open Scene")]
         public static void AddToOpenScene()
         {
-            var canvasGo = GameObject.Find("Canvas");
-            if (canvasGo == null)
+            Transform canvas = PlayableTemplateSceneBuilder.FindTemplateCanvas(SceneManager.GetActiveScene());
+            if (canvas == null)
             {
-                Debug.LogError("[Playable] No 'Canvas' GameObject found in the open scene.");
+                Debug.LogError("[Playable] No template Canvas found in the open scene.");
                 return;
             }
 
-            AddMuteButtons(canvasGo.transform);
-            AddLoadingScreen(canvasGo.transform);
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            int muteCount = AddMuteButtons(canvas);
+            GameObject loading = AddLoadingScreen(canvas);
+            if (muteCount > 0 || loading != null)
+                EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Debug.Log("[Playable] Mute button(s) + loading screen added/verified.");
         }
 
-        public static void AddMuteButtons(Transform canvas)
+        public static int AddMuteButtons(Transform canvas)
         {
+            int created = 0;
             foreach (Transform ui in canvas)
             {
                 if (ui.name != "PortraitUI" && ui.name != "LandscapeUI") continue;
                 Transform header = FindChildStartingWith(ui, "Header");
                 if (header == null) continue;
-                if (header.Find("MuteButton") != null) continue; // idempotent
+                if (header.GetComponentInChildren<MuteToggleButton>(true) != null) continue; // idempotent
 
                 CreateMuteButton(header);
+                created++;
             }
+            return created;
         }
 
-        public static void AddLoadingScreen(Transform canvas)
+        public static GameObject AddLoadingScreen(Transform canvas)
         {
-            if (canvas.Find("LoadingScreen") != null) return; // idempotent
-            CreateLoadingScreen(canvas);
+            foreach (GameObject root in canvas.gameObject.scene.GetRootGameObjects())
+                if (root.GetComponentsInChildren<LoadingScreenController>(true).Length > 0)
+                    return null; // idempotent
+            return CreateLoadingScreen(canvas);
         }
 
         private static Transform FindChildStartingWith(Transform parent, string prefix)
@@ -95,6 +102,7 @@ namespace PlayableTemplate.Core.EditorTools
 
             UnityEventTools.AddPersistentListener(button.onClick, toggle.OnClick);
 
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
             return go;
         }
 
@@ -117,6 +125,7 @@ namespace PlayableTemplate.Core.EditorTools
             so.FindProperty("coverRoot").objectReferenceValue = go;
             so.ApplyModifiedProperties();
 
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
             return go;
         }
     }
