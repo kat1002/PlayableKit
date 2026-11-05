@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Playable.Tweening
+namespace PlayableKit.Tweening
 {
     public enum Ease
     {
@@ -37,7 +37,7 @@ namespace Playable.Tweening
         Incremental
     }
 
-    public sealed class TweenRunner : MonoBehaviour { }
+    public sealed class PATweenRunner : MonoBehaviour { }
 
     public class Tween : CustomYieldInstruction
     {
@@ -725,11 +725,11 @@ namespace Playable.Tweening
             {
                 if (runner == null)
                 {
-                    runner = UnityEngine.Object.FindObjectOfType<TweenRunner>();
+                    runner = UnityEngine.Object.FindObjectOfType<PATweenRunner>();
                     if (runner == null)
                     {
-                        var runnerObject = new GameObject(nameof(TweenRunner));
-                        runner = runnerObject.AddComponent<TweenRunner>();
+                        var runnerObject = new GameObject(nameof(PATweenRunner));
+                        runner = runnerObject.AddComponent<PATweenRunner>();
                     }
                 }
                 return runner;

@@ -1,6 +1,6 @@
-namespace PlayableKit
+namespace PlayableKit.UI
 {
-    /// <summary>Receives drag-rotate input from UiDragRotate (e.g. an orbit camera).</summary>
+    /// <summary>Receives drag-rotate input from PAUiDragRotate (e.g. an orbit camera).</summary>
     public interface IDragRotateTarget
     {
         void Hold(bool held);

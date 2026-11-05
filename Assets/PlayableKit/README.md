@@ -1,91 +1,74 @@
 # PlayableKit
 
-A standalone grab-bag of generic playable-ad effects, tween helpers, small UI behaviours, diagnostics, and SDK-agnostic analytics.
-Sister kit of `PlayableUIKit` (which owns UI *controllers*); this one owns reusable *pieces*.
-Copy the whole folder into a new Unity project's `Assets/` and it compiles immediately — `Playable.Tweening` (`Runtime/Tweening/TweenLite.cs`) is bundled inside the kit, so no external DOTween installation is required.
-Every kit type lives in `namespace PlayableKit` (or `PlayableKit.Analytics`) and none depends on a game-specific type or ad SDK.
+A self-contained, conflict-free Unity Playable Ads toolkit optimized for Unity Playworks (Luna / LunaX).
 
-## Contents
+Consolidates all reusable runtime building blocks (Core orchestration, UI controls, video controllers, tweening, procedural effects, analytics) and Editor utilities into a single root directory (`Assets/PlayableKit/`) under isolated namespaces: `PlayableKit`, `PlayableKit.UI`, `PlayableKit.Video`, `PlayableKit.Tweening`, `PlayableKit.Analytics`, `PlayableKit.Editor`, and `PlayableKit.Tests`.
 
-### Runtime/Effects
+No external tween engine or TextMeshPro package dependency is required. All attachable MonoBehaviour scripts and kit assets are prefixed with `PA` (e.g. `PALayout`, `PALunaManager`, `PACtaButton`, `PA_UI_Shine_M.mat`).
 
-| Type | Job |
-|------|-----|
-| `UIShine` | Sweeping shine band across a UI `Image` (needs the `UI_Shine_M` material). Update-driven, no Sequence (Luna-safe). |
-| `UIStarTwinkle` | Twinkling stars around an element: clones an inactive template `Image` child N times in `Awake`, then loops pop-in, spin, hold, pop-out at random spots. Update-driven, no Sequence (Luna-safe). |
-| `UIPathTwinkle` | Sparkle wave along a curved path: stars pop in one after another (Arc, cubic Bezier, or draggable `P*` child points), evenly spaced by arc length, then pop out and loop. Clones an inactive template `Image` in `Awake`. Update-driven, no Sequence (Luna-safe). |
-| `UIIdleMotion` | Endless idle motion from optional sine channels: bob (Y), sway (Z tilt), pulse (scale), fade (`CanvasGroup` alpha). Update-driven, restores base pose in `OnDisable`. |
-| `UIProgressFillFX` | Non-squashing progress bar fill revealed by `UI_ProgressFill.shader` (`Progress` 0..1 masks from the left, with animated stripes, gloss, and leading-edge glow). `[ExecuteAlways]`, Update-driven. |
-| `UIPraiseFly` | Pooled fan-spread praise text/sprite fly-up effect (`Play(int stepIndex)` or `Play(Sprite)`). |
-| `UIStarBurst` | Pooled one-shot fan burst of stars rising, spinning, and falling (`Play()`). |
-| `UITapRing` | Smooth tap ripple: an `Image` scales up (ease-out) and fades in then out; `Play()`, `Play(Vector2)`, `Stop()`, optional `loop`/`loopInterval`; unscaled time, no tweens. Sprite: `Sprites/Ring`. |
-| `UIPixelRingPop` | Pooled pixel-stepped expanding ring pop (`Play(Vector2 anchoredPos)`). |
-| `UIPixelSmokeBurst` | Pooled pixel-stepped smoke burst (`Burst(Vector2 anchoredPos, int count, float minDist, float maxDist)`). |
-| `UITweenRotate` | Endless Z spin (e.g. light rays) with an optional scale pulse; starts in `OnEnable`, killed in `OnDisable`. |
-| `FlashTrailRendererDriver` | Drives a `TrailRenderer` for a quick speed-reactive flash/streak. |
-| `FallWindFx` | Wind/speed-line feel while something falls: `Begin(Transform target)` then `Land()` or `StopImmediate()`. |
-| `IWindFxReceiver` | Optional contract (`SetWindIntensity`, `Kick`) so a camera or rig can react to `FallWindFx`. |
+---
 
-### Runtime/Tweens
+## Directory Structure
 
-| Type | Job |
-|------|-----|
-| `DoScaleAToB` | Tween scale A to B; optional loop (count, loop type), play-on-enable, `ignoreTimeScale`, `SizeA`, `Play()` / `Stop()` / `SetSizes()`. |
-| `DoMoveAToB` | Tween move A to B (local or world position). |
-| `DoFadeAToB` | Tween `CanvasGroup` alpha fade A to B. |
-| `ButtonRotate` | Minimal endless 360° Z spin started in `Start` (1 s per turn). `UITweenRotate` is the configurable version. |
-| `UiSlide` | Slides a `RectTransform` to a Y (or X) position (`SnapTo`/`SlideTo`). |
-| `UiPageSlide` | Slides a page in/out (`Show`/`Hide`/`SnapActive`). |
+```text
+Assets/PlayableKit/
+├── Docs/               # Kit documentation & setup guides (SETUP.md, UIKit.md)
+├── Editor/             # Unified PAPlayableKitWindow, PALunaUiSanitizer, Exporter, Panels
+├── Materials/          # PA_UI_ProgressFill_M.mat, PA_UI_Shine_M.mat
+├── Prefabs/            # PACtaButton.prefab, PALunaRoot.prefab
+├── Runtime/
+│   ├── Analytics/      # PlayableAnalytics, IAnalyticsSink, PAAnalyticsButton
+│   ├── Core/           # PALunaManager, PAGameManagerBase, PAAudioManagerBase, GameEventManager, etc.
+│   ├── Effects/        # PAUIShine, PAUITapRing, PAUIIdleMotion, PAUIProgressFillFX, etc.
+│   ├── Tweening/       # TweenLite (pure C# DOTween-compatible runner in PlayableKit.Tweening)
+│   ├── Tweens/         # PADoScaleAToB, PADoMoveAToB, PADoFadeAToB, PAUiSlide, PATweenButton, etc.
+│   ├── UI/             # PALayout, PASafeArea, PAAspectFitter, PADragScroll, PABaseUIController, etc.
+│   └── Video/          # PAVideoStepController, PAVideoBootstrap, PAAutoPlayVideoOnEnable, etc.
+├── Scenes/             # PATemplateScene.unity
+├── Shaders/            # PA_UI_ProgressFill, PA_UI_Shine, PA_ChromaKeyGreenVideo, etc.
+├── Sprites/            # PA_Light, PA_Ring, PA_Star, PA_Star2, PA_TapHand_1, PA_TapHand_2
+└── Tests/Editor/       # LunaManagerSessionTests, GameSessionStateTests
+```
 
-### Runtime/UI
+---
 
-| Type | Job |
-|------|-----|
-| `UITapHand` | Tap-instruction hand: swaps an `Image` between a raised and a pressed sprite (`Sprites/TapHand_1` / `TapHand_2`) on a loop, with a small scale dip and optional `UITapRing`; unscaled time, no tweens. |
-| `HoldButton` | Press-and-hold control exposing `IsHeld`, with an optional handle that slides down while held; needs a raycast-target `Graphic`. |
-| `UiDragRotate` | Drag on a UI area to rotate something. |
-| `IDragRotateTarget` | Optional contract (`Hold(bool)`, `Drag(float dx, float dy)`) for what gets rotated. |
-| `BillboardToCamera` | Keeps a transform facing the main camera. |
+## Core Features & Sub-Namespaces
 
-### Runtime/Tweening
+### 1. `PlayableKit` (Core & State Machine)
+- **`PALunaManager`**: Unified playable lifecycle manager handling Luna SDK (`LifeCycle`, `Playable`, `Analytics`), install repeat guard, auto-store timer, and no-interaction idle timeout.
+- **`PAGameManagerBase`**: State machine (`Intro`, `Playing`, `Ended`), survival timer, midpoint triggers, crash flourish slow-mo, and CTA hand-off.
+- **`PAAudioManagerBase`**: Audio manager with dual-source crossfade (engine/speed), SFX one-shots, and mute toggle.
+- **`GameEventManager`**: Zero-allocation static event bus with reverse-iteration dispatch.
+- **`GameSessionState`**: Decoupled pure C# session state machine for EditMode testability.
+- **`PlayableLog`**: Lightweight console and browser logger for playable analytics and UI click debugging.
 
-| Type | Job |
-|------|-----|
-| `TweenLite` (`Playable.Tweening`) | Self-contained, Luna-safe tween engine (`TweenLite.Sequence()`, `DOVirtual`, `DOScale`, `DOMove`, `DOLocalMove`, `DORotate`, `DOLocalRotate`, `DOAnchorPos`, `DOFade`, `DOColor`, `DOFillAmount`, `DOJump`, `DOShakePosition`, `TweenLite.ApplyEase`). |
+### 2. `PlayableKit.UI` (Luna-Safe UI & Adapters)
+- **`PALayout`**: Direct `RectTransform` orientation presets (Landscape / Vertical) responding to orientation events without layout rebuilder overhead.
+- **`PASafeArea`**: Normalized anchor fitting for device notches and camera cutouts.
+- **`PAAspectFitter`**: Replacement for `AspectRatioFitter` without `DrivenRectTransformTracker`.
+- **`PADragScroll`**: Horizontal inertial drag scroll without `ScrollRect` warnings.
+- **`PABaseUIController` / `PAUIControllerBase`**: Base UI controller with landscape/portrait layout switching, timer hooks, and CTA forwarders.
+- **`CountdownTimer` / `IdleTimer` / `CtaPresenter`**: Reusable pure C# UI helper classes.
+- **`PABillboardToCamera`**, **`PAHoldButton`**, **`PAUiDragRotate`**, **`PAUITapHand`**.
 
-### Runtime/Diagnostics
+### 3. `PlayableKit.Video` (Playworks Video Controllers)
+- **`PAVideoStepController`**: Multi-click interactive video ads (play segment -> pause at gate -> show UI hook -> open store or resume on tap).
+- **`PAVideoLoopSequenceController`**: Multi-button branching interactive video player with looping end segment.
+- **`PAVideoBootstrap`**: Standalone video player startup with muted autoplay guard and soundtrack sync.
+- **`PAAutoPlayVideoOnEnable`**, **`PAKeepRatio`**, **`PAVideoOrientationSizer`**, **`VideoPlayerLoopUtility`**.
 
-| Type | Job |
-|------|-----|
-| `PlayableLog` | Static console logger (also shows in the Luna browser console): `Info`, `Click`, `Cta`, `Tap(screenPos)` (logs the topmost UI object under the tap). Set `PlayableLog.Enabled = false` before shipping. |
+### 4. `PlayableKit.Tweening` & `PlayableKit` (Tweens & Effects)
+- **`TweenLite`**: Standalone tween runner supporting `DOScale`, `DOMove`, `DOLocalMove`, `DORotate`, `DOAnchorPos`, `DOFade`, `DOColor`, `DOFillAmount`, `DOJump`, `DOShakePosition`, `DOVirtual`, and sequences.
+- **Tweens**: `PADoScaleAToB`, `PADoMoveAToB`, `PADoFadeAToB`, `PAUiSlide`, `PAUiPageSlide`, `PATweenButton`, `PATweenRotateButton`, `PALunaTweenAnimation`.
+- **Procedural Effects**: `PAUIShine`, `PAUIProgressFillFX`, `PAUIStarTwinkle`, `PAUIPathTwinkle`, `PAUIIdleMotion`, `PAUITapRing`, `PAUIPraiseFly`, `PAUIStarBurst`, `PAUIPixelRingPop`, `PAUIPixelSmokeBurst`, `PAFallWindFx`.
 
-### Runtime/Analytics
+### 5. `PlayableKit.Analytics`
+- **`PlayableAnalytics`**: SDK-agnostic analytics hub broadcasting to registered `IAnalyticsSink` backends (`LunaAnalyticsSink`).
+- **`PAAnalyticsButton`**: Component firing standard button click analytics.
 
-| Type | Job |
-|------|-----|
-| `PlayableAnalytics` | Static SDK-agnostic hub: `LevelStart/LevelWon/LevelFailed/LevelRetry(int)`, `TutorialStarted/TutorialComplete/EndCardShown()`, `Score(int)`, `Custom(name, int)`, `Button(name)` (sends `btn_<name>` = 1). Logs via `PlayableLog` (`LogToConsole`), forwards to sinks, raises `Tracked`. |
-| `IAnalyticsSink` | `Send(kind, name, value)`; implement for an SDK and register with `PlayableAnalytics.AddSink`. |
-| `AnalyticsEventKind` | Standard event kinds plus `Custom`. |
-| `AnalyticsButton` | Add to a `Button`; sends `btn_<eventName>` (or the GameObject name) on click. |
-
-### Editor
-
-| Type | Job |
-|------|-----|
-| `UIShineEditor` | Inspector for `UIShine` with Play Shine / Stop buttons in play mode. |
-
-### Shaders / Materials / Sprites
-
-| Asset | Job |
-|-------|-----|
-| `Shaders/UI_Shine.shader` + `Materials/UI_Shine_M.mat` | UI shine shader (`PlayableKit/UI_Shine`) and material; assign to the `Image` that has `UIShine`. |
-| `Shaders/UI_ProgressFill.shader` + `Materials/UI_ProgressFill_M.mat` | Progress fill shader (`PlayableKit/UI_ProgressFill`) and material; assign to the `Image` that has `UIProgressFillFX`. |
-| `Sprites/Star.png`, `Sprites/Star2.png`, `Sprites/Light.png` | Stars for `UIStarTwinkle` / `UIPathTwinkle` / `UIStarBurst` templates; soft light sprite. |
-| `Sprites/TapHand_1.png`, `Sprites/TapHand_2.png` | Raised / pressed hand sprites for `UITapHand`. |
-| `Sprites/Ring.png` | Ring sprite for `UITapRing`. |
-
-## Dependencies & Coexistence with DOTween
-
-- **UGUI** (`UnityEngine.UI`).
-- **Bundled `Playable.Tweening`** (`Runtime/Tweening/TweenLite.cs`).
-- **Projects that also have DOTween installed**: `Playable.Tweening` uses DOTween-compatible type and extension-method names (`Tween`, `Sequence`, `Ease`, `LoopType`, `DOVirtual`, `DOScale`, etc.), so never put `using DG.Tweening;` and `using Playable.Tweening;` in the same file. Alias one of them (`using PT = Playable.Tweening;`) if a file needs both, or delete `Runtime/Tweening/TweenLite.cs` if you prefer to compile against `DG.Tweening`.
+### 6. `PlayableKit.Editor` (Unified Control Center)
+Access via menu **`Tools -> PlayableKit -> PlayableKit Control Center`** (`Ctrl+Shift+K` / `Cmd+Shift+K`):
+1. **Dependencies & Scanner**: Full project & active scene dependency scanner and forbidden API/code checker.
+2. **Luna Compliance**: Scans for Spine binary `.skel.bytes`, unsupported shaders, DOTween DLL presence, and banned APIs.
+3. **UI Sanitizer**: One-click active scene UI sanitizer replacing layout groups and scroll rects with Luna-safe equivalents.
+4. **Utilities & Package Exporter**: One-click AssetBundle tag removal, Instance ID asset ping, and standalone `PlayableKit.unitypackage` exporter (which exports exclusively `Assets/PlayableKit`).
