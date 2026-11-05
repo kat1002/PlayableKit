@@ -1,7 +1,4 @@
-# PlayableKit (Unified Best-of-Breed Repository)
-
-Consolidated reusable toolkit for Unity Playable Ads (Unity Playworks / Luna), combining the best versions of every playable kit, template, UI sanitizer, video controller, and editor compliance checker across all workspace projects (`PlayableStarterKit`, `GangterCity`, `CraftPlayable`, `Obby-Playable-Ads`, `squishy_pa`, `scoop_pa`, `mukbang_pa`, `Home-Clean-Playable`, `Playable-Ads-Fake-Video`, `VideoPlayer`, `BikePlayable`, and `Package`).
-
+# PlayableKit
 ## Key Highlights
 
 - **Zero External Tween Dependency (100% Luna-Safe)**: Bundles `TweenLite` (`Playable.Tweening`) with a familiar `DOTween`-style fluent API (`DOScale`, `DOMove`, `DOAnchorPos`, `DOFade`, `DOColor`, `DOFillAmount`, `DOShakePosition`, `DOVirtual.DelayedCall`, `DOTween.Sequence`, `WaitForCompletion`).
