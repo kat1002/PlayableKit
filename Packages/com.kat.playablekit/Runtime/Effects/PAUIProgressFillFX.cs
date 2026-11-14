@@ -42,7 +42,7 @@ namespace PlayableKit.Effects
 
             if (_image.material == null || !_image.material.HasProperty(FillSizeId))
             {
-                Debug.LogWarning("PAUIProgressFillFX: material has no _FillSize property, shader FX off.", this);
+                PALog.Warn("PAUIProgressFillFX", "Material has no _FillSize property, shader FX off.", this);
                 return;
             }
 

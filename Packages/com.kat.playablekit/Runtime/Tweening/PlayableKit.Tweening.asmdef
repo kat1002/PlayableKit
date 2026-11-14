@@ -1,7 +1,7 @@
 {
   "name": "PlayableKit.Tweening",
   "rootNamespace": "PlayableKit.Tweening",
-  "references": ["UnityEngine.UI"],
+  "references": ["PlayableKit.Core", "UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

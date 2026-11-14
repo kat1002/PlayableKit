@@ -49,7 +49,7 @@ namespace PlayableKit.Audio
                 if (string.IsNullOrEmpty(id)) continue;
                 if (_indexById.ContainsKey(id))
                 {
-                    Debug.LogWarning("[PASoundManager] Duplicate sound id '" + id + "' ignored.");
+                    PALog.Warn("PASoundManager", "Duplicate sound id '" + id + "' ignored.", this);
                     continue;
                 }
                 _indexById.Add(id, i);

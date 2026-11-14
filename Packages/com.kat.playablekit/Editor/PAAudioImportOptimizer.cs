@@ -115,23 +115,27 @@ namespace PlayableKit.Editor
             {
                 Row row = _rows[i];
                 if (row.preset == Preset.Skip) continue;
-
-                var importer = AssetImporter.GetAtPath(row.path) as AudioImporter;
-                if (importer == null) continue;
-
-                bool sfx = row.preset == Preset.Sfx;
-                AudioImporterSampleSettings s = importer.GetOverrideSampleSettings(Platform);
-                s.loadType = AudioClipLoadType.CompressedInMemory;
-                s.compressionFormat = AudioCompressionFormat.Vorbis;
-                s.quality = sfx ? 0.35f : 0.55f;
-                s.sampleRateSetting = sfx ? AudioSampleRateSetting.OverrideSampleRate : AudioSampleRateSetting.OptimizeSampleRate;
-                if (sfx) s.sampleRateOverride = 22050;
-
-                importer.forceToMono = sfx;
-                importer.SetOverrideSampleSettings(Platform, s);
-                importer.SaveAndReimport();
+                ApplyPreset(row.path, row.preset == Preset.Sfx);
             }
             Scan();
+        }
+
+        /// <summary>Applies the WebGL SFX (<paramref name="sfx"/> true) or Music preset to one AudioClip asset.</summary>
+        public static void ApplyPreset(string assetPath, bool sfx)
+        {
+            var importer = AssetImporter.GetAtPath(assetPath) as AudioImporter;
+            if (importer == null) return;
+
+            AudioImporterSampleSettings s = importer.GetOverrideSampleSettings(Platform);
+            s.loadType = AudioClipLoadType.CompressedInMemory;
+            s.compressionFormat = AudioCompressionFormat.Vorbis;
+            s.quality = sfx ? 0.35f : 0.55f;
+            s.sampleRateSetting = sfx ? AudioSampleRateSetting.OverrideSampleRate : AudioSampleRateSetting.OptimizeSampleRate;
+            if (sfx) s.sampleRateOverride = 22050;
+
+            importer.forceToMono = sfx;
+            importer.SetOverrideSampleSettings(Platform, s);
+            importer.SaveAndReimport();
         }
     }
 }

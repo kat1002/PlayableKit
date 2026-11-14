@@ -11,7 +11,7 @@ namespace PlayableKit.Analytics
     /// <summary>
     /// SDK-agnostic analytics hub. Game code calls the helpers; SDK adapters register as
     /// <see cref="IAnalyticsSink"/>; observers can subscribe to <see cref="Tracked"/>.
-    /// Every event is logged via <see cref="PlayableLog"/> when <see cref="LogToConsole"/> is true.
+    /// Every event is logged via <see cref="PALog"/> when <see cref="LogToConsole"/> is true.
     /// </summary>
     public static class PlayableAnalytics
     {
@@ -65,7 +65,7 @@ namespace PlayableKit.Analytics
         {
             if (LogToConsole)
             {
-                PlayableLog.Info("ANALYTICS " + name + " " + value);
+                PALog.Info("Analytics", name + " " + value);
             }
 
             for (int i = 0; i < Sinks.Count; i++)

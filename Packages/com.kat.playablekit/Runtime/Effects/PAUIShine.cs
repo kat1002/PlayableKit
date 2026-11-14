@@ -77,7 +77,7 @@ namespace PlayableKit.Effects
 
             if (!_mat.HasProperty(ShineLocationId))
             {
-                Debug.LogWarning("PAUIShine: material has no _ShineLocation property, disabling.", this);
+                PALog.Warn("PAUIShine", "Material has no _ShineLocation property, disabling.", this);
                 enabled = false;
                 return;
             }

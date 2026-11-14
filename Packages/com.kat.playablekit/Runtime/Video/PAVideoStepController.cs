@@ -130,15 +130,17 @@ namespace PlayableKit.Video
                 videoPlayer.loopPointReached += HandleVideoEndReached;
             }
 
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.OnPause += HandleLunaPause;
             Luna.Unity.LifeCycle.OnResume += HandleLunaResume;
+    #endif
         }
 
         private void Start()
         {
             if (videoPlayer == null)
             {
-                Debug.LogError("PAVideoStepController needs a VideoPlayer.", this);
+                PALog.Error("PAVideoStepController", "Needs a VideoPlayer.", this);
                 enabled = false;
                 return;
             }
@@ -146,7 +148,9 @@ namespace PlayableKit.Video
             if (!gameStartedReported)
             {
                 gameStartedReported = true;
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
                 Luna.Unity.LifeCycle.GameStarted();
+    #endif
             }
         }
 
@@ -194,8 +198,10 @@ namespace PlayableKit.Video
                 videoPlayer.loopPointReached -= HandleVideoEndReached;
             }
 
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.OnPause -= HandleLunaPause;
             Luna.Unity.LifeCycle.OnResume -= HandleLunaResume;
+    #endif
 
             PauseVideoAudioAt(CurrentVideoTime());
         }
@@ -367,7 +373,7 @@ namespace PlayableKit.Video
         {
             if (hook == null)
             {
-                Debug.LogWarning("[VideoStepController] ReachStep: step has no hook assigned; onStepReached must activate its own UI.");
+                PALog.Warn("PAVideoStepController", "ReachStep: step has no hook assigned; onStepReached must activate its own UI.");
                 return;
             }
 
@@ -381,13 +387,13 @@ namespace PlayableKit.Video
             {
                 if (!ancestor.gameObject.activeSelf)
                 {
-                    Debug.Log($"[VideoStepController] ReachStep: re-activating collapsed ancestor '{ancestor.name}' so hook '{hook.name}' is visible.");
+                    PALog.Verbose("PAVideoStepController", $"ReachStep: re-activating collapsed ancestor '{ancestor.name}' so hook '{hook.name}' is visible.");
                     ancestor.gameObject.SetActive(true);
                 }
                 ancestor = ancestor.parent;
             }
 
-            Debug.Log($"[VideoStepController] ReachStep: hook '{hook.name}' activeSelf={hook.activeSelf} activeInHierarchy={hook.activeInHierarchy}");
+            PALog.Verbose("PAVideoStepController", $"ReachStep: hook '{hook.name}' activeSelf={hook.activeSelf} activeInHierarchy={hook.activeInHierarchy}");
         }
 
         private void HandleStepAction(int index)
@@ -449,7 +455,11 @@ namespace PlayableKit.Video
 
             // Not OpenStore(): must not latch storeOpened or report GameEnded here, so the
             // end-of-video Finish() still opens the store again as the end CTA.
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.Playable.InstallFullGame();
+    #else
+            PALog.Info("PAVideoStepController", "InstallFullGame (Luna not installed)");
+    #endif
         }
 
         // Returned from the store: pick the flow back up where it left off. Advancing
@@ -528,7 +538,11 @@ namespace PlayableKit.Video
 
             storeOpened = true;
             ReportGameEnded();
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.Playable.InstallFullGame();
+    #else
+            PALog.Info("PAVideoStepController", "InstallFullGame (Luna not installed)");
+    #endif
         }
 
         private void ReportGameEnded()
@@ -539,7 +553,9 @@ namespace PlayableKit.Video
             }
 
             gameEndedReported = true;
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.GameEnded();
+    #endif
         }
 
         private void HandleLunaPause()
@@ -735,7 +751,7 @@ namespace PlayableKit.Video
                 }
                 else if (step.tapAction == VideoStep.TapAction.ResumeVideo)
                 {
-                    Debug.LogWarning($"[PAVideoStepController] Step {i} at {step.pauseTime}s has ResumeVideo action but no actionButton assigned or found on hook.", this);
+                    PALog.Warn("PAVideoStepController", $"Step {i} at {step.pauseTime}s has ResumeVideo action but no actionButton assigned or found on hook.", this);
                 }
             }
         }

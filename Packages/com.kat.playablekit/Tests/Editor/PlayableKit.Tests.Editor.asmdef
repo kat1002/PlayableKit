@@ -1,7 +1,7 @@
 {
   "name": "PlayableKit.Tests.Editor",
   "rootNamespace": "PlayableKit.Tests",
-  "references": ["PlayableKit.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "references": ["PlayableKit.Core", "PlayableKit.Editor", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
   "includePlatforms": ["Editor"],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

@@ -9,6 +9,9 @@
   "precompiledReferences": [],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {"name": "com.unity.playworks.upp", "expression": "", "define": "PLAYABLEKIT_LUNA"},
+    {"name": "uk.lunalabs.luna", "expression": "", "define": "PLAYABLEKIT_LUNA"}
+  ],
   "noEngineReferences": false
 }

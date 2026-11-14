@@ -1,7 +1,7 @@
 {
   "name": "PlayableKit.Effects",
   "rootNamespace": "PlayableKit.Effects",
-  "references": ["PlayableKit.Tweening", "UnityEngine.UI"],
+  "references": ["PlayableKit.Core", "PlayableKit.Tweening", "UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

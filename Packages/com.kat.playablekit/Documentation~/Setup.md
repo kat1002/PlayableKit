@@ -1,6 +1,6 @@
 # Setup
 
-How to start a new playable with PlayableKit. Prerequisites (Luna 6.4 / Playworks 7.2 and TextMeshPro) are listed in the [README](../README.md).
+How to start a new playable with PlayableKit. Requirements are in the [README](../README.md). Luna 6.4 / Playworks 7.2 is needed for a real ad build; the kit compiles without it.
 
 ## 1. Start from the sample
 

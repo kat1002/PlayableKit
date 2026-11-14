@@ -89,14 +89,14 @@ namespace PlayableKit.Tweening
                     UnityEngine.UI.Graphic graphic = target as UnityEngine.UI.Graphic;
                     if (graphic == null)
                     {
-                        Debug.LogError("Fade requires a Unity UI Graphic target.", this);
+                        PALog.Error("PALunaTweenAnimation", "Fade requires a Unity UI Graphic target.", this);
                         return;
                     }
 
                     tweener = graphic.DOFade(m_EndValueFloat, m_Duration);
                     break;
                 default:
-                    Debug.LogError("Unsupported Luna tween animation type.", this);
+                    PALog.Error("PALunaTweenAnimation", "Unsupported Luna tween animation type.", this);
                     return;
             }
 

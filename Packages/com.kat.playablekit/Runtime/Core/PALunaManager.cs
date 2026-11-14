@@ -265,18 +265,22 @@ namespace PlayableKit
 
         private void OnEnable()
         {
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.OnPause += HandlePause;
             Luna.Unity.LifeCycle.OnResume += HandleResume;
             Luna.Unity.LifeCycle.OnMute += HandleMute;
             Luna.Unity.LifeCycle.OnUnmute += HandleUnmute;
+    #endif
         }
 
         private void OnDisable()
         {
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.OnPause -= HandlePause;
             Luna.Unity.LifeCycle.OnResume -= HandleResume;
             Luna.Unity.LifeCycle.OnMute -= HandleMute;
             Luna.Unity.LifeCycle.OnUnmute -= HandleUnmute;
+    #endif
         }
 
         private void OnDestroy()
@@ -333,7 +337,9 @@ namespace PlayableKit
         public static void TrackEvent(string eventName)
         {
             if (string.IsNullOrEmpty(eventName)) return;
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.Analytics.LogEvent(eventName, 0);
+    #endif
         }
 
         private void Update()
@@ -415,7 +421,9 @@ namespace PlayableKit
         public void StartGame()
         {
             if (!GetSession().Start()) return;
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.LifeCycle.GameStarted();
+    #endif
             if (GameplayStarted != null) GameplayStarted();
         }
 
@@ -448,7 +456,9 @@ namespace PlayableKit
             if (openStore) StartGame();
             if (GetSession().End())
             {
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
                 Luna.Unity.LifeCycle.GameEnded();
+    #endif
                 if (GameplayEnded != null) GameplayEnded();
             }
             if (openStore) OpenStore();
@@ -491,7 +501,11 @@ namespace PlayableKit
             {
                 m_FullscreenCtaButton.SetActive(false);
             }
+    #if PLAYABLEKIT_LUNA || UNITY_LUNA
             Luna.Unity.Playable.InstallFullGame();
+    #else
+            PALog.Info("PALunaManager", "InstallFullGame (Luna not installed)");
+    #endif
             if (StoreVisited != null) StoreVisited();
         }
 

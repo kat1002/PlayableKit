@@ -27,7 +27,7 @@ namespace PlayableKit.Video
 
             if (videoPlayer == null)
             {
-                Debug.LogError("PAAutoPlayVideoOnEnable requires a VideoPlayer.", this);
+                PALog.Error("PAAutoPlayVideoOnEnable", "Requires a VideoPlayer.", this);
             }
         }
 
@@ -58,7 +58,7 @@ namespace PlayableKit.Video
 
             if (videoPlayer == null)
             {
-                Debug.LogError("PAAutoPlayVideoOnEnable requires a VideoPlayer.", this);
+                PALog.Error("PAAutoPlayVideoOnEnable", "Requires a VideoPlayer.", this);
                 return;
             }
 

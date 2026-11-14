@@ -182,6 +182,21 @@ namespace PlayableKit.Editor
 
             EditorGUILayout.Space(10f);
 
+            // Video tools (FFmpeg)
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                EditorGUILayout.LabelField("Video Tools (FFmpeg)", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Encode videos into small browser-safe H.264 under a size budget, and bake blurred backdrop stills. Needs FFmpeg + FFprobe.", EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.Space(4f);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Video Optimizer", GUILayout.Height(28))) Media.PAVideoOptimizerWindow.Open();
+                    if (GUILayout.Button("Backdrop Capture", GUILayout.Height(28))) Media.PABackdropCaptureWindow.Open();
+                }
+            }
+
+            EditorGUILayout.Space(10f);
+
             // Package Exporter
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {

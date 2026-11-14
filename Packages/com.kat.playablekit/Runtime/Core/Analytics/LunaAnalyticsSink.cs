@@ -11,7 +11,7 @@ namespace PlayableKit.Analytics
 
         public void Send(AnalyticsEventKind kind, string name, int value)
         {
-#if UNITY_LUNA
+#if PLAYABLEKIT_LUNA || UNITY_LUNA
             switch (kind)
             {
                 case AnalyticsEventKind.TutorialStarted: Luna.Unity.Analytics.LogEvent(Luna.Unity.Analytics.EventType.TutorialStarted, value); break;
