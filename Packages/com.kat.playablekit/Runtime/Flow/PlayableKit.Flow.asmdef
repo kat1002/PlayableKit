@@ -1,0 +1,14 @@
+{
+  "name": "PlayableKit.Flow",
+  "rootNamespace": "PlayableKit.Flow",
+  "references": ["PlayableKit.Core", "PlayableKit.UI", "PlayableKit.Audio", "PlayableKit.Effects", "PlayableKit.Tweening", "UnityEngine.UI", "Unity.TextMeshPro"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

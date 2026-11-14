@@ -1,0 +1,14 @@
+{
+  "name": "PlayableKit.Editor",
+  "rootNamespace": "PlayableKit.Editor",
+  "references": ["PlayableKit.UI", "PlayableKit.Controls", "PlayableKit.Effects", "UnityEngine.UI"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

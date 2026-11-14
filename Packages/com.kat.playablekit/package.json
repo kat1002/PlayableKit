@@ -1,0 +1,22 @@
+{
+  "name": "com.kat.playablekit",
+  "version": "2.0.0",
+  "displayName": "PlayableKit",
+  "description": "Luna / Playworks-safe toolkit for Unity playable ads: Luna lifecycle and analytics, TweenLite tweening, audio, UI, effects, video, controls, editor compliance tools and build patches.",
+  "unity": "2021.3",
+  "author": { "name": "kat1002", "url": "https://github.com/kat1002" },
+  "repository": { "type": "git", "url": "https://github.com/kat1002/PlayableKit.git" },
+  "documentationUrl": "https://github.com/kat1002/PlayableKit/tree/master/Packages/com.kat.playablekit#readme",
+  "changelogUrl": "https://github.com/kat1002/PlayableKit/blob/master/Packages/com.kat.playablekit/CHANGELOG.md",
+  "keywords": ["playable", "luna", "playworks", "ads", "tween", "ui"],
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.video": "1.0.0"
+  },
+  "samples": [
+    { "displayName": "Template Scene", "description": "PALunaRoot + PAGameManagerBase + PAAudioManagerBase starter scene (needs TextMeshPro).", "path": "Samples~/TemplateScene" },
+    { "displayName": "Luna Config", "description": "Starter luna.json: copy to the project root and fill projectId/applicationID/environmentID.", "path": "Samples~/LunaConfig" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "PlayableKit.Video",
+  "rootNamespace": "PlayableKit.Video",
+  "references": ["PlayableKit.Core", "PlayableKit.UI", "Unity.Luna"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

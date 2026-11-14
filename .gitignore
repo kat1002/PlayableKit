@@ -64,3 +64,9 @@ Thumbs.db
 Desktop.ini
 *.swp
 *~
+# UPM tilde folders (Samples~, Documentation~) are package content, not backups
+!Packages/com.kat.playablekit/*~/
+
+/[Ll]unaTemp/
+/[Aa]ssets/[Ss]amples/
+/[Aa]ssets/[Ss]amples.meta
