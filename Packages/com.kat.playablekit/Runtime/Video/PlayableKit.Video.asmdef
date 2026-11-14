@@ -1,0 +1,17 @@
+{
+  "name": "PlayableKit.Video",
+  "rootNamespace": "PlayableKit.Video",
+  "references": ["PlayableKit.Core", "PlayableKit.UI", "Unity.Luna"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {"name": "com.unity.playworks.upp", "expression": "", "define": "PLAYABLEKIT_LUNA"},
+    {"name": "uk.lunalabs.luna", "expression": "", "define": "PLAYABLEKIT_LUNA"}
+  ],
+  "noEngineReferences": false
+}

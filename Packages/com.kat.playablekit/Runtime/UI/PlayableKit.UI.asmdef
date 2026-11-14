@@ -1,0 +1,14 @@
+{
+  "name": "PlayableKit.UI",
+  "rootNamespace": "PlayableKit.UI",
+  "references": ["PlayableKit.Core", "PlayableKit.Audio", "UnityEngine.UI", "Unity.TextMeshPro"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
