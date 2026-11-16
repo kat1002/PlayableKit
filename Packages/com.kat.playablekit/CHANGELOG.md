@@ -4,6 +4,11 @@ All notable changes to this package are documented here. Format: [Keep a Changel
 
 ## [2.0.1]
 
+### Added
+- `PALunaExternalSources`: keeps the kit listed in `luna.json` > `unity.scripts.externalSources`. Luna only compiles `Assets/`, and Unity installs the kit under `Library/PackageCache/com.kat.playablekit@<hash>`, a folder that changes on every update. With a missing or stale entry the Luna build succeeded but dropped every `PA*` component without an error. The entry is now rewritten after every domain reload (any install or update), only when it is wrong; other entries and the rest of the file stay as they are. Manual run: Tools/PlayableKit/Luna/Sync luna.json External Sources.
+- Luna Compliance reports an Error when `luna.json` does not list the kit's current folder.
+- README: a callout at the top explaining the `luna.json` entry, plus notes in Build with Luna, Update the package and Troubleshooting.
+
 ### Fixed
 - Luna build failed with CS0019 / CS0266 in `PAVideoLoopSequenceController` when the project declares its own global `TScreen` enum. Luna compiles the kit and project scripts together, so the global type shadowed `PlayableKit.UI.TScreen`; the Video namespace now aliases `TScreen` to the kit type.
 

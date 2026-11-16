@@ -41,6 +41,7 @@ namespace PlayableKit.Editor
         void Scan()
         {
             issues.Clear();
+            ScanLunaExternalSources();
             ScanSceneSaved();
             ScanSpine();
             ScanShaders();
@@ -50,6 +51,14 @@ namespace PlayableKit.Editor
 
             if (issues.Count == 0)
                 issues.Add(new LunaIssue(LunaSeverity.Info, "Scene is Luna-safe", null));
+        }
+
+        // ================= LUNA.JSON =================
+        /// <summary>Errors when luna.json would make Luna build without the kit (its PA components get dropped silently).</summary>
+        void ScanLunaExternalSources()
+        {
+            string problem = PALunaExternalSources.Problem();
+            if (problem != null) issues.Add(new LunaIssue(LunaSeverity.Error, problem, null));
         }
 
         // ================= SCENE =================

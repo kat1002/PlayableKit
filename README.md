@@ -1,6 +1,16 @@
 # PlayableKit
 
-Luna / Playworks-safe toolkit for Unity playable ads, shipped as the UPM package **`com.kat.playablekit`** (v2.0.0).
+Luna / Playworks-safe toolkit for Unity playable ads, shipped as the UPM package **`com.kat.playablekit`** (v2.0.1).
+
+> [!IMPORTANT]
+> **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
+>
+> If it isn't listed, the Luna build still succeeds, but every `PA*` component is silently dropped: tweens don't play, buttons do nothing, and nothing shows in the Console.
+>
+> The kit lists itself. On every Editor load (so after each install and update) it writes its current folder into `luna.json` > `unity.scripts.externalSources`, for example `.\Library\PackageCache\com.kat.playablekit@<hash>`. The hash changes with every update, so **don't type that path by hand**. What you do:
+> 1. Keep `luna.json` in the project root and **commit it** after the Console shows `[PlayableKit] luna.json externalSources now lists the kit ...`.
+> 2. Before each build, run **Tools > PlayableKit > Luna Compliance**. It reports an error when the entry is missing or stale.
+> 3. To fix it right away: **Tools > PlayableKit > Luna > Sync luna.json External Sources**.
 
 It gives every playable the same base:
 - Luna lifecycle, store / CTA handling and analytics.
@@ -168,8 +178,8 @@ PALog.Click("PlayButton");  PALog.Cta("EndCard");  PALog.Tap(Input.mousePosition
 ## Build with Luna
 
 1. Install Luna 6.4 or Playworks 7.2 into the project. The kit detects it and switches on the real Luna calls (define `PLAYABLEKIT_LUNA`).
-2. Put `luna.json` in the project root (from the *Luna Config* sample).
-3. Run the checks from [Check before you build](#check-before-you-build).
+2. Put `luna.json` in the project root (from the *Luna Config* sample). The kit adds itself to `unity.scripts.externalSources` on the next Editor load; see the note at the top of this README.
+3. Run the checks from [Check before you build](#check-before-you-build). Luna Compliance fails if `luna.json` does not list the kit's current folder.
 4. Build from the Luna window as usual.
 
 `PALunaBuildPatcher` runs on its own and fixes two bugs in Luna's generated JavaScript:
@@ -224,6 +234,7 @@ The package uses the same namespaces, class names and (for 1.x copies) script GU
 ## Update the package
 
 - **Git URL:** change the `#vX.Y.Z` tag in `manifest.json`. If you used no tag, use Package Manager > PlayableKit > **Update** (or delete the `com.kat.playablekit` entry from `packages-lock.json`).
+- After any update, Unity reinstalls the kit in a new `Library/PackageCache/com.kat.playablekit@<hash>` folder. The kit rewrites its `luna.json` entry on the next Editor load. Commit the changed `luna.json`.
 - **.unitypackage:** delete `Packages/com.kat.playablekit`, then import the new `.unitypackage`.
 - Read the [CHANGELOG](Packages/com.kat.playablekit/CHANGELOG.md) for breaking changes.
 
@@ -234,6 +245,7 @@ The package uses the same namespaces, class names and (for 1.x copies) script GU
 | `CS0433` / "type exists in both" | An old copy of the kit is still in `Assets/`. See [Migrate](#migrate-an-existing-project). |
 | TMP text is pink or invisible | *Window > TextMeshPro > Import TMP Essential Resources*. |
 | CTA does nothing in the Editor | Expected without Luna. It logs `InstallFullGame (Luna not installed)`. |
+| In the Luna build, `PA*` components do nothing (no tween, no click) and no error shows | Luna built without the kit: `luna.json` > `unity.scripts.externalSources` is missing the kit or points at an old `@hash` folder. Run **Tools > PlayableKit > Luna > Sync luna.json External Sources**, then rebuild. |
 | No logs | Check `PAConfig` (*Enable Game Log*, *Min Log Level*) and the `PA_LOG_OFF` define. |
 | Particles invisible in the Luna build | Use a Screen Space - Camera canvas or world space, not Overlay. |
 | Missing scripts after migrating | The old copy came from a different layout (not 1.x `Assets/PlayableKit`), so re-add the components by hand. |
