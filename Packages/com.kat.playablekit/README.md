@@ -2,7 +2,17 @@
 
 Luna / Playworks-safe toolkit for Unity playable ads: lifecycle and store handling, analytics, a built-in tween engine (`TweenLite`), audio, orientation-aware UI, effects, video, input controls, editor compliance tools and automatic Luna build patches.
 
-Package name `com.kat.playablekit` · version 2.0.0 · see [CHANGELOG](CHANGELOG.md).
+Package name `com.kat.playablekit` · version 2.0.1 · see [CHANGELOG](CHANGELOG.md).
+
+> [!IMPORTANT]
+> **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
+>
+> If it isn't listed, the Luna build still succeeds, but every `PA*` component is silently dropped: tweens don't play, buttons do nothing, and nothing shows in the Console.
+>
+> The kit lists itself. On every Editor load (so after each install and update) it writes its current folder into `luna.json` > `unity.scripts.externalSources`, for example `.\Library\PackageCache\com.kat.playablekit@<hash>`. The hash changes with every update, so **don't type that path by hand**. What you do:
+> 1. Keep `luna.json` in the project root and **commit it** after the Console shows `[PlayableKit] luna.json externalSources now lists the kit ...`.
+> 2. Before each build, run **Tools > PlayableKit > Luna Compliance**. It reports an error when the entry is missing or stale.
+> 3. To fix it right away: **Tools > PlayableKit > Luna > Sync luna.json External Sources**.
 
 ## Requirements
 
