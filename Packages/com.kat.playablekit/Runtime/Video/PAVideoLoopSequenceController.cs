@@ -1,11 +1,16 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Video;
+using UnityEngine.Video;
+
 using PlayableKit.UI;
 
 namespace PlayableKit.Video
 {
+    // Luna compiles the kit and project scripts as one assembly, so a project's global TScreen
+    // would win over the `using PlayableKit.UI` import. A namespace-level alias binds first.
+    using TScreen = PlayableKit.UI.TScreen;
+
     public sealed class PAVideoLoopSequenceController : MonoBehaviour
     {
         [Serializable]
