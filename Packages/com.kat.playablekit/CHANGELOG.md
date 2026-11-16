@@ -2,6 +2,11 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.1]
+
+### Fixed
+- Luna build failed with CS0019 / CS0266 in `PAVideoLoopSequenceController` when the project declares its own global `TScreen` enum. Luna compiles the kit and project scripts together, so the global type shadowed `PlayableKit.UI.TScreen`; the Video namespace now aliases `TScreen` to the kit type.
+
 ## [2.0.0]
 
 ### Added
