@@ -2,7 +2,7 @@
 
 Luna / Playworks-safe toolkit for Unity playable ads: lifecycle and store handling, analytics, a built-in tween engine (`TweenLite`), audio, orientation-aware UI, effects, video, input controls, editor compliance tools and automatic Luna build patches.
 
-Package name `com.kat.playablekit` · version 2.0.1 · see [CHANGELOG](CHANGELOG.md).
+Package name `com.kat.playablekit` · version 2.0.4 · see [CHANGELOG](CHANGELOG.md).
 
 > [!IMPORTANT]
 > **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
@@ -11,8 +11,9 @@ Package name `com.kat.playablekit` · version 2.0.1 · see [CHANGELOG](CHANGELOG
 >
 > The kit lists itself. On every Editor load (so after each install and update) it writes its current folder into `luna.json` > `unity.scripts.externalSources`, for example `.\Library\PackageCache\com.kat.playablekit@<hash>`. The hash changes with every update, so **don't type that path by hand**. What you do:
 > 1. Keep `luna.json` in the project root and **commit it** after the Console shows `[PlayableKit] luna.json externalSources now lists the kit ...`.
-> 2. Before each build, run **Tools > PlayableKit > Luna Compliance**. It reports an error when the entry is missing or stale.
-> 3. To fix it right away: **Tools > PlayableKit > Luna > Sync luna.json External Sources**.
+> 2. **Commit `Assets/PlayableKitLuna~/`.** The kit writes one empty stub `.asmdef` there per runtime assembly. Luna 7.2 also passes every `Library/ScriptAssemblies` DLL to its compiler and only leaves one out when an `.asmdef` with the same file name exists under `Assets/`. Without the stubs, Luna compiles the kit twice (source plus `PlayableKit.*.dll`) and fails with `CS0121` on every `TweenExtensions` call. Unity ignores folders ending in `~`, so the Editor build never sees the stubs.
+> 3. Before each build, run **Tools > PlayableKit > Luna Compliance**. It reports an error when the entry is missing or stale, or when a stub is missing.
+> 4. To fix it right away: **Tools > PlayableKit > Luna > Sync luna.json External Sources** (also rewrites the stubs).
 
 ## Requirements
 
