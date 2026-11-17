@@ -2,6 +2,11 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2]
+
+### Added
+- `PAUIStarBurst`: `radial` option (stars pop in at the centre, fly out evenly in a full circle, fade and shrink; Update-driven, no tweens) and public `Stop()`, which kills the burst and hides every star. `OnDisable` calls `Stop()`. Call `Stop()` before deactivating the parent: Luna builds do not reliably run `OnDisable` on children of a deactivated parent.
+
 ## [2.0.1]
 
 ### Added

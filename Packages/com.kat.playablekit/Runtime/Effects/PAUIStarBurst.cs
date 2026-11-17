@@ -23,6 +23,9 @@ namespace PlayableKit.Effects
         [SerializeField] private Vector2 lifeRange = new Vector2(0.9f, 1.4f);
         [Tooltip("Half-width of the fan in degrees around straight up.")]
         [SerializeField, Min(0f)] private float spreadAngle = 70f;
+        [Tooltip("Stars pop in at the centre, fly out evenly in a full circle and fade/shrink (Update-driven, no " +
+                 "tweens), instead of the fountain fan that rises and falls.")]
+        [SerializeField] private bool radial;
         [SerializeField] private float spinDegrees = 360f;
         [SerializeField, Min(0f)] private float staggerDelay = 0.02f;
         [SerializeField] private bool playOnEnable;
@@ -81,7 +84,17 @@ namespace PlayableKit.Effects
 
         private void OnDisable()
         {
+            Stop();
+        }
+
+        /// <summary>
+        /// Stops the burst and hides every star. Call it before hiding the burst's parent: Luna builds do not
+        /// reliably run OnDisable on children of a deactivated parent, so stars could otherwise stay on screen.
+        /// </summary>
+        public void Stop()
+        {
             KillTween();
+            _radialPlaying = false;
             HideAll();
         }
 
@@ -125,6 +138,11 @@ namespace PlayableKit.Effects
             if (_stars == null || _stars.Length == 0) return;
 
             KillTween();
+            if (radial)
+            {
+                PlayRadial();
+                return;
+            }
             var burst = TweenLite.Sequence();
             burst.SetUpdate(useUnscaledTime);
 
@@ -185,6 +203,105 @@ namespace PlayableKit.Effects
             }
 
             _sequence = burst;
+        }
+
+        // Radial mode runs from Update with no tweens: each star pops in (scale 0 -> 1, OutBack) at the centre,
+        // flies straight out evenly around a full circle, holds fully visible, then fades and shrinks at the end.
+        // Every star is hidden when its life ends, so a repeated or interrupted burst never leaves stars behind.
+        private float[] _angle, _dist, _life, _delay, _spin;
+        private float _elapsed;
+        private bool _radialPlaying;
+
+        private void PlayRadial()
+        {
+            int total = _stars.Length;
+            if (_angle == null || _angle.Length != total)
+            {
+                _angle = new float[total];
+                _dist = new float[total];
+                _life = new float[total];
+                _delay = new float[total];
+                _spin = new float[total];
+            }
+            for (int i = 0; i < total; i++)
+            {
+                _angle[i] = (360f * i / total + Random.Range(-8f, 8f)) * Mathf.Deg2Rad;
+                _dist[i] = Random.Range(distanceRange.x, distanceRange.y);
+                _life[i] = Random.Range(lifeRange.x, lifeRange.y);
+                _delay[i] = i * staggerDelay;
+                _spin[i] = Random.value < 0.5f ? -spinDegrees : spinDegrees;
+                float size = Random.Range(sizeRange.x, sizeRange.y);
+
+                RectTransform rt = _stars[i];
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = new Vector2(size, size);
+                rt.localRotation = Quaternion.identity;
+                rt.localScale = Vector3.zero;
+                SetAlpha(i, 1f);
+                _images[i].gameObject.SetActive(false);
+            }
+            _elapsed = 0f;
+            _radialPlaying = true;
+        }
+
+        private void Update()
+        {
+            if (!_radialPlaying) return;
+            // Luna can keep updating under a deactivated parent: stop instead of re-showing stars there.
+            if (!gameObject.activeInHierarchy)
+            {
+                Stop();
+                return;
+            }
+            _elapsed += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+            bool any = false;
+            for (int i = 0; i < _stars.Length; i++)
+            {
+                float local = _elapsed - _delay[i];
+                GameObject star = _images[i].gameObject;
+                if (local < 0f)
+                {
+                    any = true;
+                    continue;
+                }
+                if (local >= _life[i])
+                {
+                    if (star.activeSelf) star.SetActive(false);
+                    continue;
+                }
+                any = true;
+                if (!star.activeSelf) star.SetActive(true);
+
+                float p = local / _life[i];
+                float travel = 1f - (1f - p) * (1f - p); // OutQuad
+                RectTransform rt = _stars[i];
+                rt.anchoredPosition = new Vector2(Mathf.Cos(_angle[i]), Mathf.Sin(_angle[i])) * (_dist[i] * travel);
+                rt.localRotation = Quaternion.Euler(0f, 0f, _spin[i] * p);
+
+                // Quick pop (first 15%), full size and alpha until 75%, then fade and shrink to 60%.
+                float scale;
+                if (p < 0.15f) scale = OutBack(p / 0.15f);
+                else if (p > 0.75f) scale = Mathf.Lerp(1f, 0.6f, (p - 0.75f) / 0.25f);
+                else scale = 1f;
+                rt.localScale = new Vector3(scale, scale, 1f);
+                SetAlpha(i, p > 0.75f ? 1f - (p - 0.75f) / 0.25f : 1f);
+            }
+            if (!any) _radialPlaying = false;
+        }
+
+        private static float OutBack(float t)
+        {
+            const float c1 = 1.70158f;
+            const float c3 = c1 + 1f;
+            float u = t - 1f;
+            return 1f + c3 * u * u * u + c1 * u * u;
+        }
+
+        private void SetAlpha(int index, float k)
+        {
+            Color c = _images[index].color;
+            c.a = _alphas[index] * k;
+            _images[index].color = c;
         }
     }
 }
