@@ -53,13 +53,13 @@ One assembly per module, no dependency cycles. Core keeps the root namespace `Pl
 | `Runtime/Core` | `PlayableKit.Core` / `PlayableKit` | `PALunaManager`, `PAStoreReturn`, `PALunaStoreGateway`, `GameEventManager`, `GameSessionState`, `GameState`, `EndReason`, `Orientation`, `PALog` / `PALogLevel`, `PAConfig`; `Analytics/` (`PlayableAnalytics`, `IAnalyticsSink`, `LunaAnalyticsSink`, `PAAnalyticsButton`, ns `PlayableKit.Analytics`) | Unity.Luna (optional), ugui |
 | `Runtime/Tweening` | `PlayableKit.Tweening` | `TweenLite` (DOTween-style fluent API, no external library); `Components/`: `PADoFadeAToB`, `PADoMoveAToB`, `PADoScaleAToB`, `PALunaTweenAnimation`, `PATweenButton`, `PATweenRotateButton`, `PAUiSlide`, `PAUiPageSlide` | Core, ugui |
 | `Runtime/Audio` | `PlayableKit.Audio` | `PAAudioManagerBase`, `PASoundConfig`, `PASoundManager` | Core |
-| `Runtime/Effects` | `PlayableKit.Effects` | `PAUIShine`, `PAUIStarBurst`, `PAUIStarTwinkle`, `PAUITapRing`, `PAUIPixelRingPop`, `PAUIPixelSmokeBurst`, `PAUIPraiseFly`, `PAUIProgressFillFX`, `PAUIIdleMotion`, `PAUIPathTwinkle`, `PAUITweenRotate`, `PAUITapHand`, `PAUICoinFly`, `PAFallWindFx`, `PAFlashTrailRendererDriver`, `PAScratchSpriteRenderer`, `PACameraShake`, `PAFreezeSpineRigAfterWarmup`, `PABillboardToCamera` | Core, Tweening, ugui |
+| `Runtime/Effects` | `PlayableKit.Effects` | `PAUIShine`, `PAUIStarBurst`, `PAUIStarTwinkle`, `PAUIFallingFx` (snow / rain / any falling sprite, Image pool), `PAUITapRing`, `PAUIPixelRingPop`, `PAUIPixelSmokeBurst`, `PAUIPraiseFly`, `PAUIProgressFillFX`, `PAUIIdleMotion`, `PAUIPathTwinkle`, `PAUITweenRotate`, `PAUITapHand`, `PAUICoinFly`, `PAFallWindFx`, `PAFlashTrailRendererDriver`, `PAScratchSpriteRenderer`, `PACameraShake`, `PAFreezeSpineRigAfterWarmup`, `PABillboardToCamera` | Core, Tweening, ugui |
 | `Runtime/Controls` | `PlayableKit.Controls` | `IMoveInput`, `IDragRotateTarget`, `PAHoldButton`, `PADragScroll`, `PAUiDragRotate`, `PAJoystick` | ugui |
 | `Runtime/UI` | `PlayableKit.UI` | `PABaseUIController`, `PACtaOverlay`, `CtaPresenter`, `CountdownTimer`, `IdleTimer`, `Oriented<T>` / `OrientedFields` / `OrientedExtensions`, `PALayout`, `PAOrientationLayout`, `PAAspectFitter`, `PASafeArea`, `PAPortraitFrame`, `PAScreenOrientationChecker`, `PALoadingScreenController`, `PAMuteToggleButton`, `PATextOutline` | Core, Audio, ugui, TMP |
 | `Runtime/Video` | `PlayableKit.Video` | `PAVideoBootstrap`, `PAVideoStepController`, `PAVideoLoopSequenceController`, `PAVideoOrientationSizer`, `PAAutoPlayVideoOnEnable`, `PAKeepRatio`, `VideoPlayerLoopUtility` | Core, UI, Unity.Luna |
 | `Runtime/Flow` | `PlayableKit.Flow` | `PAGameManagerBase`, `PAGameUIController`, `PACtaClickForwarder` | Core, UI, Audio, Effects, Tweening, TMP |
 | `Editor` | `PlayableKit.Editor` (+ `PlayableKit.Editor.Media` in `Editor/Media`: FFmpeg locator / process / probe, video optimizer, backdrop capture) | Editor tools (see below) | UI, Controls, Effects |
-| `Tests/Editor` | `PlayableKit.Tests.Editor` | `GameSessionStateTests`, `LunaManagerSessionTests`, `PAVideoEncodePlanTests` | Core, Editor |
+| `Tests/Editor` | `PlayableKit.Tests.Editor` | `GameSessionStateTests`, `LunaManagerSessionTests`, `PALunaExternalSourcesTests`, `PAVideoEncodePlanTests`, `PAUIFallingFxTests` | Core, Effects, Editor |
 
 Dependency graph: Core and Controls are leaves. Tweening, Audio and UI sit on Core; Effects on Core + Tweening; Video on Core + UI; Flow on top of everything.
 
@@ -129,7 +129,7 @@ PALog.Click("PlayButton"); PALog.Cta("EndCard"); PALog.Tap(Input.mousePosition);
 - No `PlayerPrefs`.
 - No logic that depends on try/catch, and no lambdas or LINQ in per-frame code.
 - Shaders: built-in render pipeline only. No Shader Graph, no `#pragma target` above 3.0.
-- ParticleSystems render in world space or under a Screen Space - Camera canvas, not on Overlay canvases.
+- ParticleSystems render in world space or under a Screen Space - Camera canvas, not on Overlay canvases. On an Overlay canvas use an Image pool instead (`PAUIStarBurst`, `PAUIFallingFx`).
 - Open the store synchronously inside the click handler (`PALunaManager.GoToStore()`); do not defer it.
 - Check Unity objects with `== null`, not `?.` or `??`.
 - Luna transpiles C# to JS, so keep runtime code simple. Editor code is excluded by `luna.json`.
