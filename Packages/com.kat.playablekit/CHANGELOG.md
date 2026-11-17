@@ -2,6 +2,11 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.3]
+
+### Added
+- `PAUIStarBurst`: `randomAngle` option. Each star takes a uniform random angle inside the fan (`90 ± spreadAngle`) instead of evenly spaced angles, so `staggerDelay` no longer reads as a right-to-left sweep. Off by default; existing scenes keep the even fan. Static helper `RandomBurstAngle(spread, u)`.
+
 ## [2.0.2]
 
 ### Added
