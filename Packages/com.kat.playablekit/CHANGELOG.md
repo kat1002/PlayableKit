@@ -2,6 +2,12 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.4]
+
+### Fixed
+- Luna build failed with `CS0121` (ambiguous `TweenExtensions.DOScale/DOFade/DOMove...` calls) whenever `luna.json` listed the kit correctly. Luna 7.2 passes every `Library/ScriptAssemblies` DLL to its compiler and leaves one out only when an `.asmdef` with the same file name exists under `Assets/`, so the kit was compiled twice: from source (externalSources) and as `PlayableKit.*.dll`. `PALunaExternalSources` now also keeps `Assets/PlayableKitLuna~/` with one empty stub `<assembly>.asmdef` per kit runtime assembly (plus a README), adding and removing stubs as the kit's assemblies change. Unity ignores folders ending in `~`, so the Editor build is unchanged. Commit that folder.
+- Luna Compliance reports an Error when a stub is missing.
+
 ## [2.0.3]
 
 ### Added
