@@ -23,6 +23,8 @@ namespace PlayableKit.Effects
         [SerializeField] private Vector2 lifeRange = new Vector2(0.9f, 1.4f);
         [Tooltip("Half-width of the fan in degrees around straight up.")]
         [SerializeField, Min(0f)] private float spreadAngle = 70f;
+        [Tooltip("Each star takes a random angle inside the fan instead of evenly spaced angles, so the launch order (staggerDelay) does not sweep across the fan.")]
+        [SerializeField] private bool randomAngle;
         [SerializeField] private float spinDegrees = 360f;
         [SerializeField, Min(0f)] private float staggerDelay = 0.02f;
         [SerializeField] private bool playOnEnable;
@@ -118,6 +120,15 @@ namespace PlayableKit.Effects
         }
 
         /// <summary>
+        /// Angle in degrees inside the fan for a uniform sample u in [0, 1]: 0 is the right edge (90 - spread),
+        /// 1 the left edge (90 + spread).
+        /// </summary>
+        public static float RandomBurstAngle(float spread, float u)
+        {
+            return 90f - spread + 2f * spread * Mathf.Clamp01(u);
+        }
+
+        /// <summary>
         /// Plays the one-shot star burst animation.
         /// </summary>
         public void Play()
@@ -135,7 +146,9 @@ namespace PlayableKit.Effects
                 var img = _images[i];
                 float baseAlpha = _alphas[i];
 
-                float angle = CalculateBurstAngle(i, total, spreadAngle) + Random.Range(-8f, 8f);
+                float angle = randomAngle
+                    ? RandomBurstAngle(spreadAngle, Random.value)
+                    : CalculateBurstAngle(i, total, spreadAngle) + Random.Range(-8f, 8f);
                 float dist = Random.Range(distanceRange.x, distanceRange.y);
                 float life = Random.Range(lifeRange.x, lifeRange.y);
                 float size = Random.Range(sizeRange.x, sizeRange.y);
