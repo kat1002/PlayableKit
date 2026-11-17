@@ -2,6 +2,12 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2]
+
+### Added
+- `PAUIFallingFx` (Effects): falling UI particles for snow, rain, petals, confetti or any sprite. One component with presets Snow (slow, sway, spin) and Rain (fast, velocity-aligned streaks, `stretch` = height / width) plus Custom. Every particle has a depth that sets size, fall speed and alpha together (parallax), with wind (wraps on X), sine sway, spin and size/alpha ranges. Pool of Images duplicated from an inactive template child in Awake, integrated in Update: no tweens, no ParticleSystem, no allocation per frame, `dt` clamped to 0.1 s. Count capped at `MaxCount` = 120. Sprites are assigned in contiguous blocks to keep draw calls low. `Play()` / `Stop(bool clear)`.
+- EditMode tests for its pure math (`PAUIFallingFxTests`).
+
 ## [2.0.1]
 
 ### Added
