@@ -1,8 +1,8 @@
 {
   "name": "com.kat.playablekit",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "displayName": "PlayableKit",
-  "description": "Luna / Playworks-safe toolkit for Unity playable ads: Luna lifecycle and analytics, TweenLite tweening, audio, UI, effects, video, controls, editor compliance tools and build patches.",
+  "description": "Luna / Playworks-safe toolkit for Unity playable ads: Luna lifecycle and analytics, TweenLite tweening, audio, UI, effects, video, controls, editor compliance tools, build patches and luna.json profile selection.",
   "unity": "2021.3",
   "author": { "name": "kat1002", "url": "https://github.com/kat1002" },
   "repository": { "type": "git", "url": "https://github.com/kat1002/PlayableKit.git" },
@@ -14,7 +14,8 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.particlesystem": "1.0.0",
-    "com.unity.modules.video": "1.0.0"
+    "com.unity.modules.video": "1.0.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "samples": [
     { "displayName": "Template Scene", "description": "PALunaRoot + PAGameManagerBase + PAAudioManagerBase starter scene (needs TextMeshPro).", "path": "Samples~/TemplateScene" },

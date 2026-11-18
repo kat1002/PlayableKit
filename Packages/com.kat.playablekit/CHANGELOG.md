@@ -2,6 +2,15 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0]
+
+### Added
+- `PABuildSelectorWindow` (Tools/PlayableKit/Luna/Build Selector, Control Center button) and `PALunaProfileWriter` (batchmode `PrepareFromCommandLine`). Prepares `luna.json` for the open scene from the project's profile registry so creative name, startup scene, texture overrides, and script excludes stay in sync. Fixes issues where `luna.json` only holds one creative at a time and scene-only changes build with another creative's script excludes.
+- Profile registry (`Tools/Playworks/PlayableProfiles.json`) and creative keep lists (`Tools/Playworks/creatives/`). The first Register invocation creates the registry file. See [Documentation~/BuildSelector.md](Documentation~/BuildSelector.md).
+
+### Changed
+- Added package dependency `com.unity.nuget.newtonsoft-json` (3.2.1) for profile registry and `luna.json` serialization.
+
 ## [2.0.4]
 
 ### Fixed

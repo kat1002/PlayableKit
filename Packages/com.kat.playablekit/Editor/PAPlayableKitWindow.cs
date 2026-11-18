@@ -112,7 +112,8 @@ namespace PlayableKit.Editor
         {
             EditorGUILayout.HelpBox(
                 "Luna compliance scanner: scans active scene and project for Spine binary (.skel.bytes), " +
-                "unsupported URP shaders, DOTween DLL presence, and forbidden runtime APIs.",
+                "unsupported URP shaders, DOTween DLL presence, and forbidden runtime APIs." +
+                " Build Selector prepares luna.json for the open scene (scene, creative name, script excludes).",
                 MessageType.Info);
 
             EditorGUILayout.Space(6f);
@@ -126,6 +127,11 @@ namespace PlayableKit.Editor
                 if (GUILayout.Button("Open Spine .skel Binary Inspector", GUILayout.Height(36)))
                 {
                     PASpineSkelScannerPanel.Open();
+                }
+
+                if (GUILayout.Button("Open Build Selector", GUILayout.Height(36)))
+                {
+                    PABuildSelectorWindow.ShowWindow();
                 }
             }
         }

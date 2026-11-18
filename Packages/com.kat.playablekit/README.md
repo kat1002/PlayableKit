@@ -2,7 +2,7 @@
 
 Luna / Playworks-safe toolkit for Unity playable ads: lifecycle and store handling, analytics, a built-in tween engine (`TweenLite`), audio, orientation-aware UI, effects, video, input controls, editor compliance tools and automatic Luna build patches.
 
-Package name `com.kat.playablekit` · version 2.0.4 · see [CHANGELOG](CHANGELOG.md).
+Package name `com.kat.playablekit` · version 2.1.0 · see [CHANGELOG](CHANGELOG.md).
 
 > [!IMPORTANT]
 > **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
@@ -72,13 +72,14 @@ Dependency graph: Core and Controls are leaves. Tweening, Audio and UI sit on Co
 4. Add a `PASoundManager` and assign a `PASoundConfig` asset (*Create > PlayableKit > Sound Config*).
 5. Run **Tools > PlayableKit > Luna Compliance** and **Playable Ads Checker** before building.
 
-More: [Documentation~/Setup.md](Documentation~/Setup.md) and [Documentation~/UIKit.md](Documentation~/UIKit.md).
+More: [Documentation~/Setup.md](Documentation~/Setup.md), [Documentation~/UIKit.md](Documentation~/UIKit.md) and [Documentation~/BuildSelector.md](Documentation~/BuildSelector.md).
 
 ## Editor tools
 
 | Menu | What it does |
 |---|---|
 | Tools/PlayableKit/PlayableKit Control Center | Hub window (Ctrl+Shift+K) for the tools below |
+| Tools/PlayableKit/Luna/Build Selector | Prepares luna.json for the open scene from the project's profile registry (scene, creative name, script excludes, texture overrides). Why and how: [Documentation~/BuildSelector.md](Documentation~/BuildSelector.md) |
 | Tools/PlayableKit/Sanitize UI For Luna | Rewrites UI that Luna cannot run (ScrollRect, LayoutGroup, Mask, ...) |
 | Tools/PlayableKit/Playable Ads Checker | Project audit: missing scripts, asset and code issues |
 | Tools/PlayableKit/Luna Compliance | Luna rule scan, including "scene saved and in Build Settings" |
