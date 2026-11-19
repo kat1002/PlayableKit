@@ -13,7 +13,7 @@ Orientation-aware building blocks for playable-ad UI. Lives in `PlayableKit.UI` 
 | `CtaPresenter` | Show / hide / retarget a CTA panel pair (landscape + portrait, plus an optional fullscreen CTA). |
 | `CountdownTimer`, `IdleTimer` | Countdown-to-zero and count-up-with-reset helpers. Kept separate because their reset semantics are opposites. |
 | `PALayout`, `PAOrientationLayout` | Per-element layout presets vs a central slot list (see below). |
-| `PASafeArea`, `PAAspectFitter`, `PAPortraitFrame`, `PATextOutline`, `PALoadingScreenController`, `PAMuteToggleButton`, `PACtaOverlay` | Single-purpose components. |
+| `PASafeArea`, `PAAspectFitter`, `PATiledImageBackground`, `PAPortraitFrame`, `PATextOutline`, `PALoadingScreenController`, `PAMuteToggleButton`, `PACtaOverlay` | Single-purpose components. |
 | `PAScreenOrientationChecker` | Optional: raises orientation events for `PASafeArea`, `PALayout` and Video components. |
 
 ## Orientation
@@ -96,6 +96,16 @@ It re-applies the layout and re-shows the intro on `OnOrientationChanged`. `PACt
 | Use when | A few elements need different anchors per orientation | Whole screens re-arrange between orientations |
 
 Both read `Orientation.IsLandscape`. Pick one per element.
+
+## Repeating backgrounds: PATiledImageBackground
+
+`Image.Type.Tiled`, `SpriteDrawMode.Tiled` and Repeat wrap do not repeat in a Luna build. `PATiledImageBackground` tiles a sprite with plain `Simple` Images instead.
+
+1. On a stretch-anchored full-screen RectTransform (for example `Canvas/BG`, no Image on it), add `PATiledImageBackground`.
+2. Add a child `TileTemplate`: an `Image` (type **Simple**, sprite assigned, Raycast Target off) whose RectTransform size is one tile in canvas units (sprite pixel size x the scale you want). Leave it inactive.
+3. Assign the template Image to the `Tile Template` field. Keep `Overlap` at 1 to hide seams.
+
+The grid is cloned from the template at runtime (Luna only clones scene objects) and rebuilt when the rect size changes, so it follows orientation and resolution changes. Tile count is `ceil(width / tile) x ceil(height / tile)`: pick a tile size that is not tiny.
 
 ## Input contracts
 

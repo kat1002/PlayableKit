@@ -2,6 +2,11 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.2]
+
+### Added
+- `PATiledImageBackground` (`PlayableKit.UI`): repeating pattern background made of cloned `Simple` Images, rebuilt when the rect size changes. `Image.Type.Tiled`, `SpriteDrawMode.Tiled` and Repeat wrap do not repeat in a Luna build. See [Documentation~/UIKit.md](Documentation~/UIKit.md).
+
 ## [2.1.1]
 
 ### Changed
