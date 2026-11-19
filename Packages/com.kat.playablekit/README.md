@@ -2,7 +2,7 @@
 
 Luna / Playworks-safe toolkit for Unity playable ads: lifecycle and store handling, analytics, a built-in tween engine (`TweenLite`), audio, orientation-aware UI, effects, video, input controls, editor compliance tools and automatic Luna build patches.
 
-Package name `com.kat.playablekit` · version 2.1.0 · see [CHANGELOG](CHANGELOG.md).
+Package name `com.kat.playablekit` · version 2.1.1 · see [CHANGELOG](CHANGELOG.md).
 
 > [!IMPORTANT]
 > **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
@@ -80,14 +80,15 @@ More: [Documentation~/Setup.md](Documentation~/Setup.md), [Documentation~/UIKit.
 |---|---|
 | Tools/PlayableKit/PlayableKit Control Center | Hub window (Ctrl+Shift+K) for the tools below |
 | Tools/PlayableKit/Luna/Build Selector | Prepares luna.json for the open scene from the project's profile registry (scene, creative name, script excludes, texture overrides). Why and how: [Documentation~/BuildSelector.md](Documentation~/BuildSelector.md) |
-| Tools/PlayableKit/Sanitize UI For Luna | Rewrites UI that Luna cannot run (ScrollRect, LayoutGroup, Mask, ...) |
-| Tools/PlayableKit/Playable Ads Checker | Project audit: missing scripts, asset and code issues |
-| Tools/PlayableKit/Luna Compliance | Luna rule scan, including "scene saved and in Build Settings" |
-| Tools/PlayableKit/Spine Binary Inspector | Scans Spine `.skel` binaries for Luna issues |
-| Tools/PlayableKit/Audio Import Optimizer | Applies WebGL SFX / Music audio import presets to selected clips |
-| Tools/PlayableKit/Video/Video Optimizer | Batch-encodes videos into browser-safe H.264 (Baseline, no B-frames, yuv420p) under a size budget: two-pass, keeps aspect without black bars, never upscales or adds frames, separate MP3 option, ffprobe + decode verification, automatic re-encode when over budget, imports the results (no Unity transcoding; MP3 gets the Music audio preset). Needs FFmpeg + FFprobe. |
-| Tools/PlayableKit/Video/Backdrop Capture | Bakes one video frame into a cover-cropped, blurred (optionally darkened) JPG sprite to use behind a letterboxed video. Live preview. Needs FFmpeg. |
 | Tools/PlayableKit/Luna/Apply Build Patches Now | Forces `PALunaBuildPatcher` to run (see below) |
+| Tools/PlayableKit/Luna/Sync luna.json External Sources | Re-syncs `luna.json` external sources |
+| Tools/PlayableKit/Luna/Compliance | Luna rule scan, including "scene saved and in Build Settings" |
+| Tools/PlayableKit/Luna/Sanitize UI For Luna | Rewrites UI that Luna cannot run (ScrollRect, LayoutGroup, Mask, ...) |
+| Tools/PlayableKit/Validation/Playable Ads Checker | Project audit: missing scripts, asset and code issues |
+| Tools/PlayableKit/Validation/Spine Binary Inspector | Scans Spine `.skel` binaries for Luna issues |
+| Tools/PlayableKit/Media/Audio Import Optimizer | Applies WebGL SFX / Music audio import presets to selected clips |
+| Tools/PlayableKit/Media/Video Optimizer | Batch-encodes videos into browser-safe H.264 (Baseline, no B-frames, yuv420p) under a size budget: two-pass, keeps aspect without black bars, never upscales or adds frames, separate MP3 option, ffprobe + decode verification, automatic re-encode when over budget, imports the results (no Unity transcoding; MP3 gets the Music audio preset). Needs FFmpeg + FFprobe. |
+| Tools/PlayableKit/Media/Backdrop Capture | Bakes one video frame into a cover-cropped, blurred (optionally darkened) JPG sprite to use behind a letterboxed video. Live preview. Needs FFmpeg. |
 | Tools/PlayableKit/Export PlayableKit.unitypackage | Exports the package folder (`Samples~` is not included) |
 
 ### PALunaBuildPatcher

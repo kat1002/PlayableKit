@@ -11,7 +11,7 @@ namespace PlayableKit.Editor
         Vector2 scroll;
         readonly List<LunaIssue> issues = new List<LunaIssue>();
 
-        [MenuItem("Tools/PlayableKit/Luna Compliance")]
+        [MenuItem("Tools/PlayableKit/Luna/Compliance", priority = 23)]
         public static void Open()
         {
             GetWindow<PALunaCompliancePanel>("Luna Compliance");

@@ -27,7 +27,7 @@ namespace PlayableKit.Editor
         Vector2 scroll;
         ViewMode viewMode = ViewMode.All;
 
-        [MenuItem("Tools/PlayableKit/Spine Binary Inspector")]
+        [MenuItem("Tools/PlayableKit/Validation/Spine Binary Inspector", priority = 31)]
         public static void Open()
         {
             GetWindow<PASpineSkelScannerPanel>("Spine Binary Inspector");

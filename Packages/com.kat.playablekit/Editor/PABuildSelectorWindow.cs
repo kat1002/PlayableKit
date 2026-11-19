@@ -97,7 +97,7 @@ namespace PlayableKit.Editor
         [NonSerialized] private string status;
         [NonSerialized] private MessageType statusType = MessageType.Info;
 
-        [MenuItem(PALunaProfileWriter.WindowMenuPath)]
+        [MenuItem(PALunaProfileWriter.WindowMenuPath, priority = 20)]
         public static void ShowWindow()
         {
             GetWindow<PABuildSelectorWindow>("Build Selector");

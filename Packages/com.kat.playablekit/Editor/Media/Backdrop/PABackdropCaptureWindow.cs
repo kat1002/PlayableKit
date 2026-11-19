@@ -31,7 +31,7 @@ namespace PlayableKit.Editor.Media
         private MessageType _statusType = MessageType.None;
         private Vector2 _scroll;
 
-        [MenuItem("Tools/PlayableKit/Video/Backdrop Capture")]
+        [MenuItem("Tools/PlayableKit/Media/Backdrop Capture", priority = 42)]
         public static void Open()
         {
             var window = GetWindow<PABackdropCaptureWindow>("Backdrop Capture");

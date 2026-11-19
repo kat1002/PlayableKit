@@ -27,7 +27,7 @@ namespace PlayableKit.Editor.Media
         private Vector2 _scroll;
         private Vector2 _logScroll;
 
-        [MenuItem("Tools/PlayableKit/Video/Video Optimizer")]
+        [MenuItem("Tools/PlayableKit/Media/Video Optimizer", priority = 41)]
         public static void Open()
         {
             var window = GetWindow<PAVideoOptimizerWindow>("Video Optimizer");

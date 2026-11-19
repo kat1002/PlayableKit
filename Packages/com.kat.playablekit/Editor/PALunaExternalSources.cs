@@ -43,7 +43,7 @@ namespace PlayableKit.Editor
             EditorApplication.delayCall += () => Sync(false);
         }
 
-        [MenuItem(MenuPath)]
+        [MenuItem(MenuPath, priority = 22)]
         private static void SyncFromMenu()
         {
             Sync(true);

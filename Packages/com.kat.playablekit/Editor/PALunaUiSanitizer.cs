@@ -77,7 +77,7 @@ namespace PlayableKit.Editor
 
         // ------------------------------------------------------------------ menu
 
-        [MenuItem("Tools/PlayableKit/Sanitize UI For Luna")]
+        [MenuItem("Tools/PlayableKit/Luna/Sanitize UI For Luna", priority = 24)]
         public static void Sanitize()
         {
             if (EditorApplication.isPlaying)

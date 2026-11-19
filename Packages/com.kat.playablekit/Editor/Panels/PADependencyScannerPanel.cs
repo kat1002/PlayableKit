@@ -62,7 +62,7 @@ namespace PlayableKit.Editor
 
         private string selectedTabName = "All Scripts"; // Đổi default tab sang All Scripts cho tiện test
 
-        [MenuItem("Tools/PlayableKit/Playable Ads Checker")]
+        [MenuItem("Tools/PlayableKit/Validation/Playable Ads Checker", priority = 30)]
         public static void ShowWindow()
         {
             GetWindow<PADependencyScannerPanel>("Ads Project Checker");
