@@ -2,6 +2,11 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.1]
+
+### Changed
+- Regrouped the `Tools/PlayableKit` menu with explicit priorities (separators only after Control Center and above Export): Control Center at the top, then `Luna/` (Build Selector, Apply Build Patches Now, Sync luna.json External Sources, Compliance, Sanitize UI For Luna), `Validation/` (Playable Ads Checker, Spine Binary Inspector), `Media/` (Audio Import Optimizer, Video Optimizer, Backdrop Capture), and Export at the bottom. Renamed: `Luna Compliance` → `Luna/Compliance`, `Sanitize UI For Luna` → `Luna/Sanitize UI For Luna`, `Playable Ads Checker` → `Validation/Playable Ads Checker`, `Spine Binary Inspector` → `Validation/Spine Binary Inspector`, `Audio Import Optimizer` → `Media/Audio Import Optimizer`, `Video/Video Optimizer` → `Media/Video Optimizer`, `Video/Backdrop Capture` → `Media/Backdrop Capture`.
+
 ## [2.1.0]
 
 ### Added

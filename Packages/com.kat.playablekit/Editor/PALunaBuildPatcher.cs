@@ -61,7 +61,7 @@ namespace PlayableKit.Editor
             EditorApplication.update += Poll;
         }
 
-        [MenuItem("Tools/PlayableKit/Luna/Apply Build Patches Now")]
+        [MenuItem("Tools/PlayableKit/Luna/Apply Build Patches Now", priority = 21)]
         private static void ApplyNow()
         {
             LastSeenWrite.Clear();

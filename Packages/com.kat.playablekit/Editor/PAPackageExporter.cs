@@ -17,7 +17,7 @@ namespace PlayableKit.Editor
             "Packages/com.kat.playablekit"
         };
 
-        [MenuItem("Tools/PlayableKit/Export PlayableKit.unitypackage")]
+        [MenuItem("Tools/PlayableKit/Export PlayableKit.unitypackage", priority = 100)]
         public static void ExportPackageInteractive()
         {
             string defaultPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../PlayableKit.unitypackage"));

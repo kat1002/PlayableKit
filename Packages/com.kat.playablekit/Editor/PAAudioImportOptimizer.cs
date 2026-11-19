@@ -30,7 +30,7 @@ namespace PlayableKit.Editor
         private readonly List<Row> _rows = new List<Row>();
         private Vector2 _scroll;
 
-        [MenuItem("Tools/PlayableKit/Audio Import Optimizer")]
+        [MenuItem("Tools/PlayableKit/Media/Audio Import Optimizer", priority = 40)]
         private static void Open()
         {
             GetWindow<PAAudioImportOptimizer>("Audio Import Optimizer").Scan();
