@@ -2,6 +2,12 @@
 
 All notable changes to this package are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.3]
+
+### Added
+- `Prefabs/PA_SnowFall.prefab`: ready-made falling snow for UI. Stretch-anchored full-screen RectTransform with `PAUIFallingFx` (preset Snow, count 40) and an inactive `FlakeTemplate` Image. Drop it under a Canvas, behind the interactive UI; it has no Graphic, so it never blocks raycasts.
+- Sprites `PA_Snowflake` (256x256) and `PA_SnowDot` (30x29), assigned to the prefab's `sprites` array.
+
 ## [2.1.2]
 
 ### Added

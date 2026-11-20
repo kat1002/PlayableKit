@@ -1,6 +1,6 @@
 {
   "name": "com.kat.playablekit",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "displayName": "PlayableKit",
   "description": "Luna / Playworks-safe toolkit for Unity playable ads: Luna lifecycle and analytics, TweenLite tweening, audio, UI, effects, video, controls, editor compliance tools, build patches and luna.json profile selection.",
   "unity": "2021.3",

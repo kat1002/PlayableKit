@@ -107,6 +107,10 @@ Both read `Orientation.IsLandscape`. Pick one per element.
 
 The grid is cloned from the template at runtime (Luna only clones scene objects) and rebuilt when the rect size changes, so it follows orientation and resolution changes. Tile count is `ceil(width / tile) x ceil(height / tile)`: pick a tile size that is not tiny.
 
+## Falling snow: PA_SnowFall
+
+`Prefabs/PA_SnowFall.prefab` is a full-screen `PAUIFallingFx` (preset Snow) with a `FlakeTemplate` child. Drop it under a Canvas (Overlay works, it is an Image pool, not a ParticleSystem) and move it in the hierarchy: later siblings draw on top, so put it behind buttons and above the background. For rain or other sprites, change `preset` / `sprites` on the instance, or on a prefab variant. Count is capped at `PAUIFallingFx.MaxCount` (120).
+
 ## Input contracts
 
 `IMoveInput` (`PlayableKit.Controls`) exposes a 2D `Value` and `IsPressed`. `PAJoystick` implements it; implement it on your own steering or tilt source so gameplay code stays input-agnostic. `ISteerInput` was removed in 2.0.

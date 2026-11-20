@@ -2,7 +2,7 @@
 
 Luna / Playworks-safe toolkit for Unity playable ads: lifecycle and store handling, analytics, a built-in tween engine (`TweenLite`), audio, orientation-aware UI, effects, video, input controls, editor compliance tools and automatic Luna build patches.
 
-Package name `com.kat.playablekit` · version 2.1.1 · see [CHANGELOG](CHANGELOG.md).
+Package name `com.kat.playablekit` · version 2.1.3 · see [CHANGELOG](CHANGELOG.md).
 
 > [!IMPORTANT]
 > **Luna only compiles `Assets/`. The kit is a package, so Luna builds it only when `luna.json` lists its folder.**
@@ -143,8 +143,8 @@ PALog.Click("PlayButton"); PALog.Cta("EndCard"); PALog.Tap(Input.mousePosition);
 |---|---|
 | Shaders (`PlayableKit/...`) | `PA_ChromaKeyGreenVideo`, `PA_PlayworksUnlitTexture`, `PA_SpriteOutline`, `PA_UI_ProgressFill`, `PA_UI_Shine`, `PA_UI_CircleReveal`, `PA_UI_BackdropBlur`, `PA_UI_GlowOutline`, `PA_FakeShadow` |
 | Materials | `PA_UI_ProgressFill_M`, `PA_UI_Shine_M`, `PA_Confetti_M` |
-| Prefabs | `PALunaRoot`, `PACtaButton`, `PA_ConfettiBurst` (ParticleSystem only; call `Play()`) |
-| Sprites | `PA_Light`, `PA_Ring`, `PA_Star`, `PA_Star2`, `PA_TapHand_1`, `PA_TapHand_2` |
+| Prefabs | `PALunaRoot`, `PACtaButton`, `PA_ConfettiBurst` (ParticleSystem only; call `Play()`), `PA_SnowFall` (full-screen falling snow, `PAUIFallingFx`) |
+| Sprites | `PA_Light`, `PA_Ring`, `PA_Star`, `PA_Star2`, `PA_TapHand_1`, `PA_TapHand_2`, `PA_Snowflake`, `PA_SnowDot` |
 | Samples | `Template Scene`, `Luna Config` (starter `luna.json`) |
 
 ## Upgrading from 1.x
