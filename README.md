@@ -203,15 +203,7 @@ The full list is in the [package README](Packages/com.kat.playablekit/README.md#
 The package uses the same namespaces, class names and (for 1.x copies) script GUIDs as the old copies kept inside projects. **The two cannot live side by side**: you would get duplicate types, CS0433 "ambiguous reference" errors and GUID clashes.
 
 1. **Commit or back up first.**
-2. **Delete the old copy.** Known locations:
-
-   | Project | Delete |
-   |---|---|
-   | StickiiPA, CraftPlayable | `Assets/PlayableKit` |
-   | GangterCity | `Assets/_Template/PlayableKit` and `Assets/_Template/PlayableUIKit` |
-   | Obby-Playable-Ads | `Assets/Models/PlayableKit` |
-   | Projects with a `PAFramework` folder (`PALog`, `PAConfig`, `PAResolution`, ...) | Their `PALog.cs` and `PAConfig.cs`, once you switch to the kit's versions (step 4) |
-
+2. **Delete the old copy.** Known locations.
 3. **Install the package** ([Install](#install)). A 1.x copy that lived in `Assets/PlayableKit` keeps its scene and prefab references, because the GUIDs are unchanged.
 4. **Fix the code:**
    - Add the `using PlayableKit.<Module>;` lines (`Flow`, `UI`, `Audio`, `Effects`, `Tweening`, `Controls`, `Video`, `Analytics`).
